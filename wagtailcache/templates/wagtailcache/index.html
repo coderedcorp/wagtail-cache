@@ -1,0 +1,54 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n wagtailcache_tags %}
+
+{% block titletag %}{% blocktrans %}Import / export pages{% endblocktrans %}{% endblock %}
+{% block content %}
+    {% trans "Cache" as title_str %}
+    {% include "wagtailadmin/shared/header.html" with title=title_str icon=cache_icon %}
+
+    <div class="nice-padding">
+        {% if 'WAGTAIL_CACHE'|get_wagtailcache_setting %}
+        <p>
+            <b>{% trans "ENABLED" %}</b>
+        </p>
+        <p>
+            {% trans "Cached pages are automatically refreshed every" %} <b>{% cache_timeout %}</b>.<br>
+            {% trans "To modify this, change the <code>TIMEOUT</code> value of the cache backend in the project settings." %}
+        </p>
+        <p>
+            <a href="{% url 'wagtailcache_admin:clearcache' %}"
+                class="button button-longrunning"
+                id="wagtailcache-clearcache"
+                data-clicked-text="{% trans 'Clearing cache…' %}">
+                {% trans "Clear cache" %}
+            </a>
+            <script>
+                $(document).on('click', 'a#wagtailcache-clearcache', function(event) {
+                    event.preventDefault();
+                    $el = $(this);
+                    // show spinner
+                    $el.addClass('icon icon-spinner');
+                    oldtext = $el.html();
+                    $el.html($el.data("clicked-text"));
+                    // make ajax call
+                    $.ajax({
+                        url: $el.attr('href')
+                    })
+                    .always(function(msg) {
+                        $el.after("<div>" + msg + "</div>")
+                        $el.removeClass('icon icon-spinner');
+                        $el.html(oldtext);
+                    });
+                });
+            </script>
+        </p>
+        {% else %}
+        <p>
+            <b>{% trans "DISABLED" %}</b>
+        </p>
+        <p>
+            {% trans "To enable caching, set <code>WAGTAIL_CACHE = True</code> in the project settings." %}
+        </p>
+        {% endif %}
+    </div>
+{% endblock %}
