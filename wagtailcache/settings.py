@@ -1,3 +1,7 @@
+"""
+Default django settings for wagtail-cache.
+"""
+
 from django.conf import settings
 from django.utils.lru_cache import lru_cache
 
@@ -9,6 +13,9 @@ DEFAULTS = {
 
 @lru_cache()
 def get_config():
+    """
+    Gets settings from django settings file or defaults.
+    """
     config = DEFAULTS.copy()
     for var in config:
         if hasattr(settings, var):

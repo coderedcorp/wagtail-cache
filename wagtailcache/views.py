@@ -1,12 +1,23 @@
-from django.contrib.auth.decorators import login_required
+"""
+Views for the wagtail admin dashbaord.
+"""
+
 from django.http import HttpResponse
 from django.shortcuts import render
-from wagtailcache import cache_icon, clear_cache
+
+from wagtailcache.cache import clear_cache
+from wagtailcache.icon import CACHE_ICON
 
 
 def index(request):
-    return render(request, 'wagtailcache/index.html', {'cache_icon': cache_icon})
+    """
+    The wagtail-cache admin panel.
+    """
+    return render(request, 'wagtailcache/index.html', {'cache_icon': CACHE_ICON})
 
 def clear(request):
+    """
+    AJAX call to clear the cache.
+    """
     clear_cache()
     return HttpResponse("Cache has been cleared.")
