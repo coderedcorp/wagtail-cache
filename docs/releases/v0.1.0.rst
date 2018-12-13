@@ -1,4 +1,4 @@
-wagtail-cache v 0.1.0 release notes
-===================================
+wagtail-cache 0.1.0 release notes
+=================================
 
 * Initial release

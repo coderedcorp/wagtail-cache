@@ -242,3 +242,11 @@ div.footer {
 .clearfix {
     clear: both;
 }
+
+div.admonition {
+    background-color: #fafcff;
+    border-radius: 4px;
+    color: #248;
+    border: 1.5px solid #d0e0f0;
+    padding: 1em;
+}

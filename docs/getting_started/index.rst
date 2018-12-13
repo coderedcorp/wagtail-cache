@@ -8,3 +8,4 @@ Getting Started
     usage
     hooks
     django_settings
+    supported_backends
