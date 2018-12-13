@@ -34,8 +34,13 @@
                     $.ajax({
                         url: $el.attr('href')
                     })
+                    .done(function(data) {
+                        $el.after("<div>" + data + "</div>");
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        $el.after("<div>" + errorThrown + "</div>");
+                    })
                     .always(function(msg) {
-                        $el.after("<div>" + msg + "</div>")
                         $el.removeClass('icon icon-spinner');
                         $el.html(oldtext);
                     });
