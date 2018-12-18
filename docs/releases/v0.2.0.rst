@@ -1,4 +1,4 @@
-wagtail-cache v 0.2.0 release notes
+wagtail-cache 0.2.0 release notes
 ===================================
 
 * Moved ``cache_page()`` and ``clear_cache()`` from ``wagtailcache`` to ``wagtailcache.cache``.

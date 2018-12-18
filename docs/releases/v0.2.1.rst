@@ -1,0 +1,4 @@
+wagtail-cache 0.2.1 release notes
+===================================
+
+* Fixed packaging issue that resulted in HTML templates missing from 0.2.0 pip package.
