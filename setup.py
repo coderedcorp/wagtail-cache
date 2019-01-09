@@ -29,6 +29,7 @@ setup(
             'pylint-django',
             'sphinx',
             'twine',
+            'wheel',
         ],
     },
     classifiers=[
