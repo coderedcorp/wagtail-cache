@@ -1,0 +1,6 @@
+wagtail-cache 0.3.0 release notes
+=================================
+
+* Add support for ``django-redis`` cache backend. See :doc:`/getting_started/supported_backends`.
+* Add __init__.py in templatetags directory.
+* Documentation updates.
