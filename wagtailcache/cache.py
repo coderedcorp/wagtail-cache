@@ -33,7 +33,7 @@ def cache_page(view_func):
                 not request.is_preview and \
                 not request.user.is_authenticated
             for fn in hooks.get_hooks('is_request_cacheable'):
-                result = fn(request)
+                result = fn(request, is_cacheable)
                 if isinstance(result, bool):
                     is_cacheable = result
 
