@@ -17,6 +17,6 @@ Clearing the cache through the wagtail admin will purge this entire cache.
 WAGTAIL_CACHE_HEADER
 --------------------
 By default, an HTTP header named ``X-Wagtail-Cache`` is added to the response to indicate
-a cache hit or miss. To turn off this header, set ``WAGTAIL_CACHE_HEADER = False```,
+a cache hit or miss. To turn off this header, set ``WAGTAIL_CACHE_HEADER = False``,
 or to customize the header set to a string. Note that other HTTP headers may also added by
 the Django cache middleware.
