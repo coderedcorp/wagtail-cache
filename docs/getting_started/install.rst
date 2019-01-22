@@ -61,7 +61,7 @@ To this::
     # Copied from wagtail.core.urls:
     url(r'^_util/authenticate_with_password/(\d+)/(\d+)/$', wagtail_views.authenticate_with_password,
         name='wagtailcore_authenticate_with_password'),
-    url(r'^_util/login/$', auth_views.login, {'template_name': WAGTAIL_FRONTEND_LOGIN_TEMPLATE},
+    url(r'^_util/login/$', auth_views.LoginView.as_view(template_name=WAGTAIL_FRONTEND_LOGIN_TEMPLATE),
         name='wagtailcore_login'),
 
     # Wrap the serve function with wagtail-cache
