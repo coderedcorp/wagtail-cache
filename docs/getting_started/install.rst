@@ -36,30 +36,39 @@ suitable for use on any web server::
 3. Use the cache decorator
 --------------------------
 
-Finally, use the ``cache_page`` decorator on any views or URLs. Most likely you will want this on
-all of your wagtail pages, so you will have to replace the ``wagtail_urls`` with the following
-in your project's urls.py::
+Finally, use the ``cache_page`` decorator on any views or URLs.
+
+Caching pages
+~~~~~~~~~~~~~
+
+Most likely you will want this on all of your wagtail pages, so you will have to
+replace the inclusion of ``wagtail_urls`` in your project's ``urls.py``. You will
+need to change from this::
 
     from django.conf.urls import url
 
-    # Replace:
-    # url(r'', include(wagtail_urls)),
+    url(r'', include(wagtail_urls)),
 
-    # With:
+To this::
+
+    from django.conf.urls import url
 
     from django.contrib.auth import views as auth_views
     from wagtail.core.urls import serve_pattern, WAGTAIL_FRONTEND_LOGIN_TEMPLATE
     from wagtail.core import views as wagtail_views
     from wagtailcache.cache import cache_page
 
-    # Direct copy of wagtail.core.urls
+    # Copied from wagtail.core.urls:
     url(r'^_util/authenticate_with_password/(\d+)/(\d+)/$', wagtail_views.authenticate_with_password,
         name='wagtailcore_authenticate_with_password'),
-    url(r'^_util/login/$', auth_views.login, {'template_name': WAGTAIL_FRONTEND_LOGIN_TEMPLATE},
+    url(r'^_util/login/$', auth_views.LoginView.as_view(template_name=WAGTAIL_FRONTEND_LOGIN_TEMPLATE),
         name='wagtailcore_login'),
 
     # Wrap the serve function with wagtail-cache
     url(serve_pattern, cache_page(wagtail_views.serve), name='wagtail_serve'),
+
+Caching views
+~~~~~~~~~~~~~
 
 You can also use the decorator on views::
 
@@ -67,6 +76,15 @@ You can also use the decorator on views::
 
     @cache_page
     def myview(request):
+        ...
+
+To use it on class-based views::
+
+    from django.utils.decorators import method_decorator
+    from wagtailcache.cache import cache_page
+
+    @method_decorator(cache_page, name='dispatch')
+    class MyView(TemplateView):
         ...
 
 

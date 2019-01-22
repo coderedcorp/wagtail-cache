@@ -9,10 +9,11 @@ the wagtail admin. Defaults to ``True`` which is on. Most developers will want t
 
 WAGTAIL_CACHE_BACKEND
 ---------------------
-The name of the Django cache alias/backend to use for the page cache. Defaults to ``'default'``
-which is required by Django when using the cache. Complex projects would likely want to use a
-separate cache for the page cache to easily purge as needed without affecting other caches.
-Clearing the cache through the wagtail admin will purge this entire cache.
+The name of the Django cache alias/backend to use for the page cache; one of the keys in the
+``CACHES`` Django setting. Defaults to ``'default'`` which is required by Django when using
+the cache. Complex projects would likely want to use a separate cache for the page cache to
+easily purge as needed without affecting other caches. Clearing the cache through the wagtail
+admin will purge this entire cache.
 
 WAGTAIL_CACHE_HEADER
 --------------------
