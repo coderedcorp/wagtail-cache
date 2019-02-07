@@ -54,10 +54,26 @@ def cache_page(view_func):
 
                 # since we don't have a response at this point, run the view.
                 response = view_func(request, *args, **kwargs)
-                # add a response header to indicate this was a cache miss
-                if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
-                    response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'miss'
-                djcache.process_response(request, response)
+
+                # check if the response is cacheable
+                if response.has_header('Cache-Control'):
+                    is_cacheable = 'no-cache' not in response['Cache-Control'] and \
+                        'private' not in response['Cache-Control']
+                for fn in hooks.get_hooks('is_response_cacheable'):
+                    result = fn(response, is_cacheable)
+                    if isinstance(result, bool):
+                        is_cacheable = result
+
+                if is_cacheable:
+                    # cache the response
+                    djcache.process_response(request, response)
+                    # add a response header to indicate this was a cache miss
+                    if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
+                        response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'miss'
+                else:
+                    # add a response header to indicate this was intentionally not cached
+                    if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
+                        response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'skip'
 
                 return response
 
@@ -65,3 +81,31 @@ def cache_page(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view_func
+
+
+class WagtailCacheMixin:
+    """
+    Add cache-control headers to various Page responses that could be returned.
+    """
+
+    def serve_password_required_response(self, request, form, action_url):
+        """
+        Add a cache-control header if the page requires a password.
+        """
+        response = super().serve_password_required_response(request, form, action_url)
+        response['Cache-Control'] = 'private'
+        return response
+
+    def serve(self, request, *args, **kwargs):
+        """
+        Add a cache-control header if the page is being served behind a view restriction.
+        """
+        response = super().serve(request, *args, **kwargs)
+        if hasattr(self, 'cache_control_header'):
+            if callable(self.cache_control_header):
+                response['Cache-Control'] = self.cache_control_header()
+            else:
+                response['Cache-Control'] = self.cache_control_header
+        if self.get_view_restrictions():
+            response['Cache-Control'] = 'private'
+        return response

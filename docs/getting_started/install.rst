@@ -88,6 +88,54 @@ To use it on class-based views::
         ...
 
 
+4. Instruct pages how to cache (optional)
+-----------------------------------------
+
+There are many situations where a specific page should not be cached. For example,
+a page with privacy or view restrictions (e.g. password, login required), or possibly a form or
+other page with CSRF data.
+
+For that reason, it is recommended to add the ``WagtailCacheMixin`` to your Page models,
+which will handle all of these situations and provide additional control over how and when
+pages cache.
+
+Add the mixin **to the beginning** of the class inheritance::
+
+    from wagtailcache.cache import WagtailCacheMixin
+
+    class MyPage(WagtailCacheMixin, Page):
+        ...
+
+
+Now ``MyPage`` will not cache if a particular instance is set to use password or login
+privacy. The ``WagtailCacheMixin`` also gives you the option to add a custom Cache-Control
+header via ``cache_control_header``, which can be a dynamic function or a string::
+
+    from wagtailcache.cache import WagtailCacheMixin
+
+    class MyPage(WagtailCacheMixin, Page):
+
+        cache_control_header = 'no-cache'
+
+        ...
+
+
+Setting this to ``no-cache`` or ``private`` will tell wagtail-cache **not** to cache this page.
+You could also set it to a custom value such as "public, max-age=3600". It can also be a function::
+
+    from wagtailcache.cache import WagtailCacheMixin
+
+    class MyPage(WagtailCacheMixin, Page):
+
+        def cache_control_header(self):
+            return 'no-cache'
+
+        ...
+
+Regardless of the mixin, wagtail-cache will never cache a response that has a ``Cache-Control`` header
+containing ``no-cache`` or ``private``. Adding this header to any response will cause it to be skipped.
+
+
 Using a separate cache backend
 ------------------------------
 
