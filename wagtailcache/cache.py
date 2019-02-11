@@ -98,14 +98,15 @@ class WagtailCacheMixin:
 
     def serve(self, request, *args, **kwargs):
         """
-        Add a cache-control header if the page is being served behind a view restriction.
+        Add a custom cache-control header, or set to private if the page is being served
+        behind a view restriction.
         """
         response = super().serve(request, *args, **kwargs)
-        if hasattr(self, 'cache_control_header'):
-            if callable(self.cache_control_header):
-                response['Cache-Control'] = self.cache_control_header()
-            else:
-                response['Cache-Control'] = self.cache_control_header
         if self.get_view_restrictions():
             response['Cache-Control'] = 'private'
+        elif hasattr(self, 'cache_control'):
+            if callable(self.cache_control):
+                response['Cache-Control'] = self.cache_control()
+            else:
+                response['Cache-Control'] = self.cache_control
         return response

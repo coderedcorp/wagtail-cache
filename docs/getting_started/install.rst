@@ -109,13 +109,13 @@ Add the mixin **to the beginning** of the class inheritance::
 
 Now ``MyPage`` will not cache if a particular instance is set to use password or login
 privacy. The ``WagtailCacheMixin`` also gives you the option to add a custom Cache-Control
-header via ``cache_control_header``, which can be a dynamic function or a string::
+header via ``cache_control``, which can be a dynamic function or a string::
 
     from wagtailcache.cache import WagtailCacheMixin
 
     class MyPage(WagtailCacheMixin, Page):
 
-        cache_control_header = 'no-cache'
+        cache_control = 'no-cache'
 
         ...
 
@@ -127,7 +127,7 @@ You could also set it to a custom value such as "public, max-age=3600". It can a
 
     class MyPage(WagtailCacheMixin, Page):
 
-        def cache_control_header(self):
+        def cache_control(self):
             return 'no-cache'
 
         ...
