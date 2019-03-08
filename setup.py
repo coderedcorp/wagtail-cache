@@ -15,7 +15,7 @@ setup(
     author="CodeRed LLC",
     author_email='info@coderedcorp.com',
     url='https://github.com/coderedcorp/wagtail-cache',
-    description="A simple page cache for Wagtail using the Django cache middleware.",
+    description="A simple page cache for Wagtail based on the Django cache middleware.",
     long_description=readme,
     long_description_content_type='text/markdown',
     license="BSD license",
