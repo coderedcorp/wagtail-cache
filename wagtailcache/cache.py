@@ -168,6 +168,22 @@ def cache_page(view_func):
     return _wrapped_view_func
 
 
+def nocache_page(view_func):
+    """
+    Decorator that sets no-cache on all responses.
+    """
+    @wraps(view_func)
+    def _wrapped_view_func(request, *args, **kwargs):
+        # Run the view.
+        response = view_func(request, *args, **kwargs)
+        # Set cache-control if wagtail-cache is enabled.
+        if wagtailcache_settings['WAGTAIL_CACHE']:
+            response['Cache-Control'] = 'no-cache'
+        return response
+
+    return _wrapped_view_func
+
+
 class WagtailCacheMixin:
     """
     Add cache-control headers to various Page responses that could be returned.

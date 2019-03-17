@@ -79,7 +79,7 @@ header via ``cache_control``, which can be a dynamic function or a string::
         ...
 
 
-Setting this to ``no-cache`` or ``private`` will tell wagtail-cache **not** to cache this page.
+Setting this to contain ``no-cache`` or ``private`` will tell wagtail-cache **not** to cache this page.
 You could also set it to a custom value such as "public, max-age=3600". It can also be a function::
 
     from wagtailcache.cache import WagtailCacheMixin
@@ -94,12 +94,33 @@ You could also set it to a custom value such as "public, max-age=3600". It can a
 Regardless of the mixin, Wagtail Cache will never cache a response that has a ``Cache-Control`` header
 containing ``no-cache`` or ``private``. Adding this header to any response will cause it to be skipped.
 
+To explicitly not cache certain views or URL patterns, you could also wrap them with the ``nocache_page``
+decorator, which adds the ``Cache-Control: no-cache`` header to all responses of that view or
+URL pattern. To use with a view::
+
+    from wagtailcache.cache import nocache_page
+
+    @nocache_page
+    def myview(request):
+        ...
+
+Or on a URL pattern::
+
+    from wagtailcache.cache import nocache_page
+
+    ...
+
+    url(r'^url/pattern/$', nocache_page(viewname), name='viewname'),
+
+    ...
+
 When using the Wagtail Cache middleware, the middleware will detect CSRF tokens and will only cache
 those responses on a per-cookie basis. So Wagtail Cache should work well with CSRF tokens 🙂.
-But if you still experience issues with CSRF tokens, use the mixin or set the ``Cache-Control`` header to
-``no-cache`` on the response to guarantee that it will never be cached. If you are using the decorator
-instead of the middleware, you **must** use the mixin or set the ``Cache-Control`` header on responses with
-CSRF tokens to avoid getting 403 forbidden errors.
+But if you still experience issues with CSRF tokens, use the mixin, the ``nocache_page`` decorator,
+or set the ``Cache-Control`` header to ``no-cache`` on the response to guarantee that it will
+never be cached. If you are using the ``cache_page`` decorator instead of the middleware, you
+**must** use the mixin or set the ``Cache-Control`` header on responses with CSRF tokens to avoid
+getting 403 forbidden errors.
 
 
 Using a separate cache backend
@@ -130,7 +151,10 @@ the page is not in preview mode, a user is not logged in, and many other require
 
 To only cache specific views, remove the middleware and use the ``cache_page`` decorator on views or URLs.
 
-Note that when using the decorator, it is not possible to cache Wagtail page 404s or redirects. Only the
+Alternatively, to continue using the middleware but explicitly not cache certain views or URLs, wrap those
+views or URLs with the ``nocache_page`` decorator.
+
+Note that when using the ``cache_page`` decorator, it is not possible to cache Wagtail page 404s or redirects. Only the
 middleware is able to cache those responses.
 
 Caching wagtail pages only
