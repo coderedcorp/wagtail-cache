@@ -95,13 +95,14 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         # Don't cache private or no-cache responses.
         # Do cache 200, 301, 302, 304, and 404 codes so that wagtail doesn't have to repeatedly look up these URLs in the database.
         # Don't cache streaming responses.
-        # Don't cache responses that set a user-specific cookie in response to a cookie-less request (CSRF tokens).
         is_cacheable = \
             'no-cache' not in response.get('Cache-Control', ()) and \
             'private' not in response.get('Cache-Control', ()) and \
             response.status_code in (200, 301, 302, 304, 404) and \
-            not response.streaming and \
-            not (not request.COOKIES and response.cookies and has_vary_header(response, 'Cookie'))
+            not response.streaming
+        # Don't cache 200 responses that set a user-specific cookie in response to a cookie-less request (e.g. CSRF tokens).
+        if is_cacheable and response.status_code == 200:
+            is_cacheable = not (not request.COOKIES and response.cookies and has_vary_header(response, 'Cookie'))
 
         # Allow the user to override our caching decision.
         for fn in hooks.get_hooks('is_response_cacheable'):
