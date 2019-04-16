@@ -186,8 +186,8 @@ To this::
     # Wrap the serve function with wagtail-cache
     url(serve_pattern, cache_page(wagtail_views.serve), name='wagtail_serve'),
 
-Caching specific wagtail pages only
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Caching specific wagtail page models only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also use the decorator on specific wagtail pages. It is helpful in Wagtail sites where the requirement is not to cache all pages::
 
