@@ -12,7 +12,7 @@ Add to installed apps in the project settings::
 
     INSTALLED_APPS = [
         ...
-        wagtailcache,
+        'wagtailcache',
         ...
     ]
 
@@ -185,6 +185,18 @@ To this::
 
     # Wrap the serve function with wagtail-cache
     url(serve_pattern, cache_page(wagtail_views.serve), name='wagtail_serve'),
+
+Caching specific wagtail page models only
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also use the decorator on specific wagtail pages. It is helpful in Wagtail sites where the requirement is not to cache all pages::
+
+    from django.utils.decorators import method_decorator
+    from wagtailcache.cache import cache_page, WagtailCacheMixin
+
+    @method_decorator(cache_page, name='serve')
+    class MyPage(WagtailCacheMixin, Page):
+        ...
 
 Caching views
 ~~~~~~~~~~~~~
