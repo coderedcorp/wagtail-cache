@@ -114,7 +114,7 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-html_sidebars = { '**': ['searchbox.html', 'globaltoc.html', 'relations.html', 'versions.html'] }
+html_sidebars = {'**': ['searchbox.html', 'globaltoc.html', 'relations.html', 'versions.html']}
 
 html_context = {
     'css_files': ['_static/docs.css'],

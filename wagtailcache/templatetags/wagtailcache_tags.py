@@ -1,5 +1,4 @@
 from django import template
-from django.conf import settings
 from django.core.cache import caches
 from django.utils.translation import ugettext_lazy as _
 from wagtailcache.settings import wagtailcache_settings
@@ -24,9 +23,9 @@ def seconds_to_readable(seconds):
     if hrs > 0:
         pretty_time += ' {0} {1}'.format(str(hrs), _('hours') if hrs > 1 else _('hour'))
     if mins > 0:
-        pretty_time += ' {0} {1}'.format(str(mins), _('minutes') if mins > 1  else _('minute'))
+        pretty_time += ' {0} {1}'.format(str(mins), _('minutes') if mins > 1 else _('minute'))
     if secs > 0:
-        pretty_time += ' {0} {1}'.format(str(secs), _('seconds') if secs > 1  else _('second'))
+        pretty_time += ' {0} {1}'.format(str(secs), _('seconds') if secs > 1 else _('second'))
     return pretty_time
 
 

@@ -12,6 +12,10 @@ from wagtailcache.icon import CACHE_ICON
 
 
 class CacheMenuItem(MenuItem):
+    """
+    Registers wagtail-cache in wagtail admin for superusers.
+    """
+
     def is_shown(self, request):
         return request.user.is_superuser
 

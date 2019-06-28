@@ -16,6 +16,7 @@ def index(request):
     """
     return render(request, 'wagtailcache/index.html', {'cache_icon': CACHE_ICON})
 
+
 def clear(request):
     """
     AJAX call to clear the cache.

@@ -21,6 +21,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
     Loads a request from the cache if it exists.
     Mostly stolen from `django.middleware.cache.FetchFromCacheMiddleware`.
     """
+
     def __init__(self, get_response=None):
         self.get_response = get_response
 
@@ -46,7 +47,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
 
         if not is_cacheable:
             request._cache_update_cache = False
-            return None # Don't bother checking the cache.
+            return None  # Don't bother checking the cache.
 
         # try and get the cached GET response
         cache_key = get_cache_key(request, None, 'GET', cache=_wagcache)
@@ -93,16 +94,20 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 
         # Check if the response is cacheable
         # Don't cache private or no-cache responses.
-        # Do cache 200, 301, 302, 304, and 404 codes so that wagtail doesn't have to repeatedly look up these URLs in the database.
+        # Do cache 200, 301, 302, 304, and 404 codes so that wagtail doesn't
+        #   have to repeatedly look up these URLs in the database.
         # Don't cache streaming responses.
         is_cacheable = \
             'no-cache' not in response.get('Cache-Control', ()) and \
             'private' not in response.get('Cache-Control', ()) and \
             response.status_code in (200, 301, 302, 304, 404) and \
             not response.streaming
-        # Don't cache 200 responses that set a user-specific cookie in response to a cookie-less request (e.g. CSRF tokens).
+        # Don't cache 200 responses that set a user-specific cookie in response to
+        # a cookie-less request (e.g. CSRF tokens).
         if is_cacheable and response.status_code == 200:
-            is_cacheable = not (not request.COOKIES and response.cookies and has_vary_header(response, 'Cookie'))
+            is_cacheable = not (
+                not request.COOKIES and response.cookies and has_vary_header(response, 'Cookie')
+            )
 
         # Allow the user to override our caching decision.
         for fn in hooks.get_hooks('is_response_cacheable'):
