@@ -1,9 +1,10 @@
 """
 Use a shiny fontawesome icon if available.
 """
+from django.apps import apps
 
-try:
-    import wagtailfontawesome
+
+if apps.is_installed('wagtailfontawesome'):
     CACHE_ICON = 'fa-bolt'
-except ModuleNotFoundError:
+else:
     CACHE_ICON = 'cog'
