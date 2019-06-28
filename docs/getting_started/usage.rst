@@ -20,6 +20,12 @@ in use by ``WAGTAIL_CACHE_BACKEND``::
     # Clear the cache manually
     clear_cache()
 
+There is also a Django management command to clear the cache:
+
+.. code-block:: console
+
+    $ python manage.py clear_wagtail_cache
+
 
 Clearing the cache automatically
 --------------------------------
