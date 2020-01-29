@@ -3,7 +3,7 @@ Default django settings for wagtail-cache.
 """
 
 from django.conf import settings
-from django.utils.lru_cache import lru_cache
+from functools import lru_cache
 
 
 DEFAULTS = {
