@@ -71,8 +71,8 @@ stages:
   dependsOn: Unit_Tests
   condition: succeeded('Unit_Tests')
   jobs:
-  - job: flake8
-    displayName: flake8
+  - job: lint
+    displayName: Linters
     pool:
       vmImage: 'ubuntu-latest'
 
