@@ -1,0 +1,11 @@
+# Explicitly declare text files to be converted to Unix line endings.
+*.bat text eol=crlf
+*.cfg text eol=lf
+*.css text eol=lf
+*.in text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.rst text eol=lf
+*.txt text eol=lf
