@@ -33,5 +33,6 @@ class CallableCacheControlPage(WagtailCacheMixin, Page):
     cache-control header via a function call.
     """
     template = "home/page.html"
+
     def cache_control(self):
         return "private"
