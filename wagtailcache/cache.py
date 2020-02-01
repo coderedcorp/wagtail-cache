@@ -3,13 +3,19 @@ Functionality to set, serve from, and clear the cache.
 """
 
 from functools import wraps
+from typing import Callable, Optional
+
 from django.core.cache import caches
+from django.core.handlers.wsgi import WSGIRequest
+from django.http.response import HttpResponse
+from django.template.response import SimpleTemplateResponse
 from django.utils.cache import (
     get_cache_key, get_max_age, has_vary_header, learn_cache_key,
     patch_response_headers,
 )
 from django.utils.deprecation import MiddlewareMixin
 from wagtail.core import hooks
+
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -25,7 +31,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
     def __init__(self, get_response=None):
         self.get_response = get_response
 
-    def process_request(self, request):
+    def process_request(self, request: WSGIRequest) -> Optional[HttpResponse]:
         if not wagtailcache_settings['WAGTAIL_CACHE']:
             return None
 
@@ -33,10 +39,11 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         # Only cache GET and HEAD requests.
         # Don't cache requests that are previews.
         # Don't cache reqeusts that have a logged in user.
-        request.is_preview = getattr(request, 'is_preview', False)
+        # NOTE: Wagtail manually adds `is_preview` to the request object. This
+        #       not normally part of a request object.
         is_cacheable = \
             request.method in ('GET', 'HEAD') and \
-            not request.is_preview and \
+            not getattr(request, 'is_preview', False) and \
             not request.user.is_authenticated
 
         # Allow the user to override our caching decision.
@@ -46,13 +53,13 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
                 is_cacheable = result
 
         if not is_cacheable:
-            request._cache_update_cache = False
+            setattr(request, "_wagtailcache_update", False)
             return None  # Don't bother checking the cache.
 
         # try and get the cached GET response
         cache_key = get_cache_key(request, None, 'GET', cache=_wagcache)
         if cache_key is None:
-            request._cache_update_cache = True
+            setattr(request, "_wagtailcache_update", True)
             return None  # No cache information available, need to rebuild.
         response = _wagcache.get(cache_key)
         # if it wasn't found and we are looking for a HEAD, try looking just for that
@@ -61,11 +68,11 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
             response = _wagcache.get(cache_key)
 
         if response is None:
-            request._cache_update_cache = True
+            setattr(request, "_wagtailcache_update", True)
             return None  # No cache information available, need to rebuild.
 
         # hit, return cached response
-        request._cache_update_cache = False
+        setattr(request, "_wagtailcache_update", False)
         # Add a response header to indicate this was a cache hit
         if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
             response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'hit'
@@ -81,10 +88,10 @@ class UpdateCacheMiddleware(MiddlewareMixin):
     def __init__(self, get_response=None):
         self.get_response = get_response
 
-    def _should_update_cache(self, request, response):
-        return hasattr(request, '_cache_update_cache') and request._cache_update_cache
+    def _should_update_cache(self, request: WSGIRequest, response: HttpResponse) -> bool:
+        return getattr(request, "_wagtailcache_update", False)
 
-    def process_response(self, request, response):
+    def process_response(self, request: WSGIRequest, response: HttpResponse) -> HttpResponse:
         if not wagtailcache_settings['WAGTAIL_CACHE']:
             return response
 
@@ -98,8 +105,8 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         #   have to repeatedly look up these URLs in the database.
         # Don't cache streaming responses.
         is_cacheable = \
-            'no-cache' not in response.get('Cache-Control', ()) and \
-            'private' not in response.get('Cache-Control', ()) and \
+            'no-cache' not in response.get('Cache-Control', "") and \
+            'private' not in response.get('Cache-Control', "") and \
             response.status_code in (200, 301, 302, 304, 404) and \
             not response.streaming
         # Don't cache 200 responses that set a user-specific cookie in response to
@@ -133,7 +140,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         patch_response_headers(response, timeout)
         if timeout:
             cache_key = learn_cache_key(request, response, timeout, None, cache=_wagcache)
-            if hasattr(response, 'render') and callable(response.render):
+            if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
                     lambda r: _wagcache.set(cache_key, r, timeout)
                 )
@@ -147,7 +154,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache():
+def clear_cache() -> None:
     """
     Clears the entire cache backend used by wagtail-cache.
     """
@@ -155,12 +162,12 @@ def clear_cache():
         _wagcache.clear()
 
 
-def cache_page(view_func):
+def cache_page(view_func: Callable[..., HttpResponse]):
     """
     Decorator that determines whether or not to cache a page or serve a cached page.
     """
     @wraps(view_func)
-    def _wrapped_view_func(request, *args, **kwargs):
+    def _wrapped_view_func(request: WSGIRequest, *args, **kwargs) -> HttpResponse:
         # Try to fetch an already cached page from wagtail-cache.
         response = FetchFromCacheMiddleware().process_request(request)
         if response:
@@ -174,12 +181,12 @@ def cache_page(view_func):
     return _wrapped_view_func
 
 
-def nocache_page(view_func):
+def nocache_page(view_func: Callable[..., HttpResponse]):
     """
     Decorator that sets no-cache on all responses.
     """
     @wraps(view_func)
-    def _wrapped_view_func(request, *args, **kwargs):
+    def _wrapped_view_func(request: WSGIRequest, *args, **kwargs) -> HttpResponse:
         # Run the view.
         response = view_func(request, *args, **kwargs)
         # Set cache-control if wagtail-cache is enabled.
