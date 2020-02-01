@@ -16,12 +16,13 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import datetime
 from wagtailcache import __shortversion__
 
 # -- Project information -----------------------------------------------------
 
 project = 'wagtail-cache'
-copyright = '2018, CodeRed LLC'
+copyright = '2018–' + str(datetime.datetime.now().year) + ', CodeRed LLC'
 author = 'CodeRed LLC'
 
 # The short X.Y version
