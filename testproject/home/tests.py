@@ -33,7 +33,7 @@ class WagtailCacheTest(TestCase):
             slug="callablecachecontrolpage",
             content_type=self.get_content_type("callablecachecontrolpage"),
         )
-        self.page_wagtailpage: WagtailPage = WagtailPage.objects.get(slug="home")
+        self.page_wagtailpage = WagtailPage.objects.get(slug="home")
         self.page_wagtailpage.add_child(instance=self.page_cachedpage)
         self.page_wagtailpage.add_child(instance=self.page_cachecontrolpage)
         self.page_wagtailpage.add_child(instance=self.page_callablecachecontrolpage)
