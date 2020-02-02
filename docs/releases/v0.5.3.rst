@@ -1,7 +1,0 @@
-wagtail-cache 0.5.3 release notes
-=================================
-
-No functional changes for this release.
-
-* Support Django 3.0.
-* Add unit tests, type hints, and continuous integration.
