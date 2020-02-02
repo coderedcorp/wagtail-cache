@@ -1,13 +1,14 @@
+from typing import Optional
 from django import template
 from django.core.cache import caches
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from wagtailcache.settings import wagtailcache_settings
 
 
 register = template.Library()
 
 
-def seconds_to_readable(seconds):
+def seconds_to_readable(seconds: int) -> str:
     """
     Converts int seconds to a human readable string.
     """
@@ -30,13 +31,11 @@ def seconds_to_readable(seconds):
 
 
 @register.filter
-def get_wagtailcache_setting(value):
-    return wagtailcache_settings.get(value, None)
+def get_wagtailcache_setting(value: str) -> Optional[object]:
+    return getattr(wagtailcache_settings, value, None)
 
 
 @register.simple_tag
-def cache_timeout():
-    timeout = caches[wagtailcache_settings['WAGTAIL_CACHE_BACKEND']].default_timeout
-    if isinstance(timeout, int):
-        return seconds_to_readable(timeout)
-    return str(timeout)
+def cache_timeout() -> str:
+    timeout = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].default_timeout
+    return seconds_to_readable(timeout)
