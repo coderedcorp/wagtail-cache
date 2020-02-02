@@ -19,9 +19,6 @@ from wagtail.core import hooks
 from wagtailcache.settings import wagtailcache_settings
 
 
-_wagcache = caches[wagtailcache_settings['WAGTAIL_CACHE_BACKEND']]
-
-
 class FetchFromCacheMiddleware(MiddlewareMixin):
     """
     Loads a request from the cache if it exists.
@@ -29,10 +26,11 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
     """
 
     def __init__(self, get_response=None):
+        self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
 
     def process_request(self, request: WSGIRequest) -> Optional[HttpResponse]:
-        if not wagtailcache_settings['WAGTAIL_CACHE']:
+        if not wagtailcache_settings.WAGTAIL_CACHE:
             return None
 
         # Check if request is cacheable
@@ -57,15 +55,15 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
             return None  # Don't bother checking the cache.
 
         # try and get the cached GET response
-        cache_key = get_cache_key(request, None, 'GET', cache=_wagcache)
+        cache_key = get_cache_key(request, None, 'GET', cache=self._wagcache)
         if cache_key is None:
             setattr(request, "_wagtailcache_update", True)
             return None  # No cache information available, need to rebuild.
-        response = _wagcache.get(cache_key)
+        response = self._wagcache.get(cache_key)
         # if it wasn't found and we are looking for a HEAD, try looking just for that
         if response is None and request.method == 'HEAD':
-            cache_key = get_cache_key(request, None, 'HEAD', cache=_wagcache)
-            response = _wagcache.get(cache_key)
+            cache_key = get_cache_key(request, None, 'HEAD', cache=self._wagcache)
+            response = self._wagcache.get(cache_key)
 
         if response is None:
             setattr(request, "_wagtailcache_update", True)
@@ -74,8 +72,8 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         # hit, return cached response
         setattr(request, "_wagtailcache_update", False)
         # Add a response header to indicate this was a cache hit
-        if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
-            response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'hit'
+        if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
+            response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = 'hit'
         return response
 
 
@@ -86,13 +84,14 @@ class UpdateCacheMiddleware(MiddlewareMixin):
     """
 
     def __init__(self, get_response=None):
+        self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
 
     def _should_update_cache(self, request: WSGIRequest, response: HttpResponse) -> bool:
         return getattr(request, "_wagtailcache_update", False)
 
     def process_response(self, request: WSGIRequest, response: HttpResponse) -> HttpResponse:
-        if not wagtailcache_settings['WAGTAIL_CACHE']:
+        if not wagtailcache_settings.WAGTAIL_CACHE:
             return response
 
         if not self._should_update_cache(request, response):
@@ -125,31 +124,28 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         # If we are not allowed to cache the response, just return.
         if not is_cacheable:
             # Add a response header to indicate this was intentionally not cached.
-            if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
-                response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'skip'
+            if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
+                response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = 'skip'
             return response
 
         # Try to get the timeout from the "max-age" section of the "Cache-
         # Control" header before reverting to using the cache's default.
         timeout = get_max_age(response)
         if timeout is None:
-            timeout = _wagcache.default_timeout
-        elif timeout == 0:
-            # max-age was set to 0, don't bother caching.
-            return response
+            timeout = self._wagcache.default_timeout
         patch_response_headers(response, timeout)
         if timeout:
-            cache_key = learn_cache_key(request, response, timeout, None, cache=_wagcache)
+            cache_key = learn_cache_key(request, response, timeout, None, cache=self._wagcache)
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
-                    lambda r: _wagcache.set(cache_key, r, timeout)
+                    lambda r: self._wagcache.set(cache_key, r, timeout)
                 )
             else:
-                _wagcache.set(cache_key, response, timeout)
+                self._wagcache.set(cache_key, response, timeout)
 
             # Add a response header to indicate this was a cache miss.
-            if wagtailcache_settings['WAGTAIL_CACHE_HEADER']:
-                response[wagtailcache_settings['WAGTAIL_CACHE_HEADER']] = 'miss'
+            if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
+                response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = 'miss'
 
         return response
 
@@ -158,8 +154,8 @@ def clear_cache() -> None:
     """
     Clears the entire cache backend used by wagtail-cache.
     """
-    if wagtailcache_settings['WAGTAIL_CACHE']:
-        _wagcache.clear()
+    if wagtailcache_settings.WAGTAIL_CACHE:
+        caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].clear()
 
 
 def cache_page(view_func: Callable[..., HttpResponse]):
@@ -190,8 +186,10 @@ def nocache_page(view_func: Callable[..., HttpResponse]):
         # Run the view.
         response = view_func(request, *args, **kwargs)
         # Set cache-control if wagtail-cache is enabled.
-        if wagtailcache_settings['WAGTAIL_CACHE']:
+        if wagtailcache_settings.WAGTAIL_CACHE:
             response['Cache-Control'] = 'no-cache'
+            if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
+                response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = 'skip'
         return response
 
     return _wrapped_view_func
