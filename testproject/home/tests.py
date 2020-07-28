@@ -227,7 +227,6 @@ class WagtailCacheTest(TestCase):
     def test_page_404_without_auth(self):
         self.test_page_404()
 
-
     # ---- TEST VIEWS ----------------------------------------------------------
     # Views use the decorators and should work without the middleware.
 
