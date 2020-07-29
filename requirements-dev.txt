@@ -1,4 +1,5 @@
 -e ./
+alabaster
 flake8
 mypy
 pytest
