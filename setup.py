@@ -24,18 +24,6 @@ setup(
     install_requires=[
         'wagtail>=2.0'
     ],
-    extras_require={
-        'dev': [
-            'flake8',
-            'mypy',
-            'pytest',
-            'pytest-cov',
-            'pytest-django',
-            'sphinx',
-            'twine',
-            'wheel',
-        ],
-    },
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',

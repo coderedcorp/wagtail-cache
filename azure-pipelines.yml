@@ -45,7 +45,7 @@ stages:
         versionSpec: '$(PYTHON_VERSION)'
         architecture: 'x64'
 
-    - script: python -m pip install -e ./[dev]
+    - script: python -m pip install -r requirements-dev.txt
       displayName: 'CR-QC: Install from local repo'
 
     - script: pytest ./testproject/
@@ -83,7 +83,7 @@ stages:
         versionSpec: '3.8'
         architecture: 'x64'
 
-    - script: python -m pip install -e ./[dev]
+    - script: python -m pip install -r requirements-dev.txt
       displayName: 'CR-QC: Install from local repo'
 
     - script: flake8 .
@@ -123,7 +123,7 @@ stages:
         versionSpec: '3.8'
         architecture: 'x64'
 
-    - script: python -m pip install -e ./[dev]
+    - script: python -m pip install -r requirements-dev.txt
       displayName: 'CR-QC: Install from local repo'
 
     - pwsh: sphinx-build -M html ./docs/ ./docs/_build/ -W
