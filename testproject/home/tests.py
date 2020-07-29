@@ -197,6 +197,36 @@ class WagtailCacheTest(TestCase):
         self.get_miss("/gimme-a-404/")
         self.get_hit("/gimme-a-404/")
 
+    @modify_settings(MIDDLEWARE={
+        "remove": 'django.contrib.auth.middleware.AuthenticationMiddleware',  # noqa
+    })
+    def test_page_miss_without_auth(self):
+        self.test_page_miss()
+
+    @modify_settings(MIDDLEWARE={
+        "remove": 'django.contrib.auth.middleware.AuthenticationMiddleware',  # noqa
+    })
+    def test_page_hit_without_auth(self):
+        self.test_page_hit()
+
+    @modify_settings(MIDDLEWARE={
+        "remove": 'django.contrib.auth.middleware.AuthenticationMiddleware',  # noqa
+    })
+    def test_page_skip_without_auth(self):
+        self.test_page_skip()
+
+    @modify_settings(MIDDLEWARE={
+        "remove": 'django.contrib.auth.middleware.AuthenticationMiddleware',  # noqa
+    })
+    def test_page_restricted_without_auth(self):
+        self.test_page_restricted()
+
+    @modify_settings(MIDDLEWARE={
+        "remove": 'django.contrib.auth.middleware.AuthenticationMiddleware',  # noqa
+    })
+    def test_page_404_without_auth(self):
+        self.test_page_404()
+
     # ---- TEST VIEWS ----------------------------------------------------------
     # Views use the decorators and should work without the middleware.
 
