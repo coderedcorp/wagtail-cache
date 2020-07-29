@@ -63,7 +63,7 @@ source ~/Envs/wagtail-cache/bin/activate
    additional development tools:
 
 ```
-pip install -e ./[dev]
+pip install -r requirements-dev.txt
 ```
 
 3. Write some code.
