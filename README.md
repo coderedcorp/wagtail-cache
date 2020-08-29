@@ -12,8 +12,8 @@ Status
 
 |                        |                      |
 |------------------------|----------------------|
-| Python Package         |[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Django Version](https://img.shields.io/pypi/djversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Wheel](https://img.shields.io/pypi/wheel/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/) |
-| Build                  | [![Build Status](https://dev.azure.com/coderedcorp/coderedcms/_apis/build/status/coderedcms?branchName=master)](https://dev.azure.com/coderedcorp/coderedcms/_build/latest?definitionId=9&branchName=master) [![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/coderedcorp/coderedcms/9/master)](https://dev.azure.com/coderedcorp/coderedcms/_build/latest?definitionId=9&branchName=master) [![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/coderedcorp/coderedcms/9/master)](https://dev.azure.com/coderedcorp/coderedcms/_build/latest?definitionId=9&branchName=master) |
+| Python Package         | [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Django Version](https://img.shields.io/pypi/djversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Wheel](https://img.shields.io/pypi/wheel/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/) |
+| Build                  | [![Build Status](https://dev.azure.com/coderedcorp/cr-github/_apis/build/status/cr-github?branchName=main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) [![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/coderedcorp/cr-github/9/main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) [![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/coderedcorp/cr-github/9/main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) |
 
 
 Quick Start
@@ -35,13 +35,6 @@ appropriately cache and serve them similar to Django's cache middleware.
 The end result is ultra-fast page serving that requires zero database hits
 to serve cached pages. Other solutions such as template caching still require
 database hits for wagtail to serve a page.
-
-
-Notes
------
-This cache feature was originally part of [coderedcms](https://github.com/coderedcorp/coderedcms)
-and has been split out into this separate package. Wagtail Cache is
-tried and tested, and is in use successfully on many live production sites.
 
 
 Contributing
