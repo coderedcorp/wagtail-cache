@@ -3,7 +3,7 @@ from django_redis.cache import omit_exception, RedisCache as BaseBackend
 
 class RedisCache(BaseBackend):
     """
-    Extends django_redis.cache.RedisCache for compatiblity
+    Extends django_redis.cache.RedisCache for compatibility
     with the Django cache middleware.
     """
     @omit_exception

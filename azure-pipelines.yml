@@ -86,6 +86,9 @@ stages:
     - script: python -m pip install -r requirements-dev.txt
       displayName: 'CR-QC: Install from local repo'
 
+    - script: codespell ./docs/ ./wagtailcache/
+      displayName: 'CR-QC: Spell check'
+
     - script: flake8 .
       displayName: 'CR-QC: Static analysis (flake8)'
 

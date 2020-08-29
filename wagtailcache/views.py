@@ -1,5 +1,5 @@
 """
-Views for the wagtail admin dashbaord.
+Views for the wagtail admin dashboard.
 """
 
 from django.http import HttpResponse
