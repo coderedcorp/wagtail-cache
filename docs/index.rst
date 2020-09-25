@@ -3,9 +3,10 @@ Wagtail Cache Documentation
 
 Wagtail Cache is a simple page cache for Wagtail inspired by the Django cache
 middleware. It provides an extremely fast way of serving pages with no database
-hits whatsoever. It is customizable enough that the developer can determine
-whether or not to cache on each individual request/response, or even on the
-Wagtail page models directly!
+hits whatsoever, and does not require any additional infrastructure (such as
+Redis, Memcached, etc.)! However it is still customizable enough that the
+developer can determine whether or not to cache on each individual
+request/response, views, or Wagtail page models directly.
 
 Wagtail Cache also provides a panel to show cache stats and clear the cache from
 the wagtail admin under **Settings > Cache**.
@@ -33,4 +34,5 @@ Contents
    :titlesonly:
 
    getting_started/index
+   contributing
    releases/index

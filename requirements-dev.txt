@@ -7,5 +7,6 @@ pytest
 pytest-cov
 pytest-django
 sphinx
+sphinx-library
 twine
 wheel

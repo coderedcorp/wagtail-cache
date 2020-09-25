@@ -1,10 +1,12 @@
 Wagtail Cache
 =============
 
-A simple page cache for Wagtail based on the Django cache middleware.
+A fast and simple page cache for Wagtail, inspired by the Django cache
+middleware.
 
 [Documentation](https://docs.coderedcorp.com/wagtail-cache/) |
-[Source code on GitHub](https://github.com/coderedcorp/wagtail-cache)
+[Source code on GitHub](https://github.com/coderedcorp/wagtail-cache) |
+[PyPI](https://pypi.org/project/wagtail-cache/)
 
 
 Status
@@ -27,62 +29,22 @@ Why Wagtail Cache?
 
 Django has a robust cache middleware that already has the functionality
 needed to cache web pages effectively. But turning the cache middleware
-on will blindly cache every request and does not work well with a wagtail site.
+on will blindly cache every request and does not work well with a Wagtail site.
 
-Wagtail Cache provides a decorator that works well with wagtail pages to
-appropriately cache and serve them similar to Django's cache middleware.
+Wagtail Cache provides a middleware, decorator, and mixin that works well with
+Wagtail pages, Django views, or even manually on any request/response to
+efficiently cache and serve from cache.
 
 The end result is ultra-fast page serving that requires zero database hits
 to serve cached pages. Other solutions such as template caching still require
-database hits for wagtail to serve a page.
+database hits for Wagtail to serve a page.
+
+Wagtail Cache also does not require any additional infrastructure such as Redis,
+Memcached, proxies, etc. It can work directly off the filesystem, or using any
+of Django's built-in cache backends.
 
 
 Contributing
 ------------
 
-To set up your development environment:
-
-1. Create a new environment:
-
-```
-python -m venv ~/Envs/wagtail-cache
-# Mac and Linux
-source ~/Envs/wagtail-cache/bin/activate
-# Windows (PowerShell)
-~/Envs/wagtail-cache/Scripts/Activate.ps1
-```
-
-2. Enter the source code directory and install the package locally with
-   additional development tools:
-
-```
-pip install -r requirements-dev.txt
-```
-
-3. Write some code.
-
-4. Next, run the static analysis tools (`flake8` and `mypy`)
-
-```
-flake8 ./wagtailcache/
-mypy ./wagtailcache/
-```
-
-5. Next, run the units tests. A simple Wagtail project using Wagtail Cache is
-   in the `testproject/` directory. The tests will generate a visual HTML file
-   at `htmlcov/index.html` when finished, which you can open in your browser.
-```
-pytest ./testproject/
-```
-
-6. To build the documentation, run the following, which will output to the
-   `docs/_build/html/` directory.
-```
-sphinx-build -M html ./docs/ ./docs/_build/ -W
-```
-
-7. To create a python package, run the following, which will output the package
-   to the `dist/` directory.
-```
-python setup.py sdist bdist_wheel
-```
+Follow the [contributing guide](https://docs.coderedcorp.com/wagtail-cache/stable/contributing.html)

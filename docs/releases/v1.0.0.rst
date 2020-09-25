@@ -1,5 +1,5 @@
-wagtail-cache 1.0.0 release notes
-=================================
+1.0.0 release notes
+===================
 
 There are no functionality changes for this release. However at this point
 the package is mature and well tested enough to designate a 1.0 version.

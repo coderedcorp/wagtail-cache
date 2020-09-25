@@ -17,8 +17,9 @@ For example::
 
     @hooks.register('is_request_cacheable')
     def nocache_in_query(request, curr_cache_decision):
-        # if the querystring contains a "nocache" key, return False to forcibly not cache.
-        # otherwise, do not return to let wagtail-cache decide how to cache.
+        # if the querystring contains a "nocache" key, return False to
+        # forcibly not cache. Otherwise, do not return to let wagtail-cache
+        # decide how to cache.
         if 'nocache' in request.GET:
             return False
 
@@ -38,8 +39,9 @@ For example::
 
     @hooks.register('is_response_cacheable')
     def nocache_secrets(request, curr_cache_decision):
-        # if the response contains a custom header, return False to forcibly not cache.
-        # otherwise, do not return to let wagtail-cache decide how to cache.
+        # if the response contains a custom header, return False to
+        # forcibly not cache. Otherwise, do not return to let wagtail-cache
+        # decide how to cache.
         if response.has_header('X-My-Header'):
             if response['X-My-Header'] == 'secret':
                 return False

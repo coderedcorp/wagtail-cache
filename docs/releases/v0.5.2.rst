@@ -1,5 +1,5 @@
-wagtail-cache 0.5.2 release notes
-=================================
+0.5.2 release notes
+===================
 
 * Add new management command `clear_wagtail_cache` to clear cache.
 * Minor code cleanup.

@@ -1,4 +1,4 @@
-wagtail-cache 0.5.1 release notes
-=================================
+0.5.1 release notes
+===================
 
 * Ignore ``Vary: Cookie`` header when caching 301, 302, 304, and 404 response codes. Always served cached responses regardless of cookies.

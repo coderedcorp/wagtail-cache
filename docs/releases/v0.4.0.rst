@@ -1,5 +1,5 @@
-wagtail-cache 0.4.0 release notes
-=================================
+0.4.0 release notes
+===================
 
 * Added new ``is_response_cacheable`` hook. See :doc:`/getting_started/hooks`.
 * Never cache responses with a ``Cache-Control`` header containing ``no-cache`` or ``private``.

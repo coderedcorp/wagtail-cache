@@ -1,5 +1,5 @@
-wagtail-cache 1.0.1 release notes
-=================================
+1.0.1 release notes
+===================
 
 * Support Django installations where ``AuthenticationMiddleware`` is not enabled.
   In this situation, it will behave the same as if no user is logged in.
