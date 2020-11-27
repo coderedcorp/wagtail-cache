@@ -163,7 +163,18 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             timeout = self._wagcache.default_timeout
         patch_response_headers(response, timeout)
         if timeout:
+            # Create caches key dict.
+            if not self._wagcache.get('keyring'):
+                self._wagcache.set('keyring', {})
+
             cache_key = learn_cache_key(request, response, timeout, None, cache=self._wagcache)
+
+            # Track cache keys.
+            uri = clean_uri(request.build_absolute_uri())
+            keyring = self._wagcache.get('keyring')
+            keyring[uri] = keyring.get(uri, []) + [cache_key]
+            self._wagcache.set('keyring', keyring)
+
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
                     lambda r: self._wagcache.set(cache_key, r, timeout)
@@ -184,6 +195,33 @@ def clear_cache() -> None:
     if wagtailcache_settings.WAGTAIL_CACHE:
         caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].clear()
 
+def clean_uri(uri):
+    """
+    delete Trailingslash if available
+    """
+    if uri[-1] == '/':
+        uri = uri[:-1]
+
+    return uri
+
+def purge_cache(urls) -> None:
+    """
+    Cleans the Wagtail cache of the used cache backend with the passed URL list.
+    """
+    if wagtailcache_settings.WAGTAIL_CACHE:
+        if caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].has_key('keyring'):
+            keyring = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].get('keyring')
+
+            for url in urls:
+                url = clean_uri(url)
+                if url in keyring:
+                    for key in keyring[url]:
+                        if caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].has_key(key):
+                            caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].set(key, None, 0)
+
+                    del keyring[url]
+
+            caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].set('keyring', keyring)
 
 def cache_page(view_func: Callable[..., HttpResponse]):
     """
