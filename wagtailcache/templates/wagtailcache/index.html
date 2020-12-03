@@ -1,7 +1,7 @@
 {% extends "wagtailadmin/base.html" %}
 {% load i18n wagtailcache_tags %}
 
-{% block titletag %}{% blocktrans %}Import / export pages{% endblocktrans %}{% endblock %}
+{% block titletag %}{% trans "Cache" %}{% endblock %}
 {% block content %}
     {% trans "Cache" as title_str %}
     {% include "wagtailadmin/shared/header.html" with title=title_str icon=cache_icon %}
