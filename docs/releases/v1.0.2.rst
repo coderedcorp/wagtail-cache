@@ -1,0 +1,11 @@
+1.0.2 release notes
+===================
+
+* Updated ``testproject`` to work with Wagtail 2.10+
+* Removed deprecated ``wagtail.core.middleware.SiteMiddleware`` from the ``testproject``
+
+
+**Additional Notes**: ``SiteMiddleware`` was deprecated in Wagtail v.2.9 because it clashes with 
+Django's own site middleware. If this is left in your project when you upgrade
+your Wagtail versions, it will cause potential failures in this package and may 
+cause errors when running the server.
