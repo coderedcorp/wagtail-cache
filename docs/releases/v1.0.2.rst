@@ -1,11 +1,15 @@
 1.0.2 release notes
 ===================
 
-* Updated ``testproject`` to work with Wagtail 2.10+
-* Removed deprecated ``wagtail.core.middleware.SiteMiddleware`` from the ``testproject``
+* Fix typo in Wagtail Cache settings page.
+
+* Updated unit tests for Wagtail 2.12.
 
 
-**Additional Notes**: ``SiteMiddleware`` was deprecated in Wagtail v.2.9 because it clashes with 
-Django's own site middleware. If this is left in your project when you upgrade
-your Wagtail versions, it will cause potential failures in this package and may 
-cause errors when running the server.
+.. note::
+
+    Wagtail Cache may not work correctly with
+    ``wagtail.core.middleware.SiteMiddleware`` or
+    ``wagtail.contrib.legacy.sitemiddleware.SiteMiddleware`` on Wagtail 2.9 and
+    newer. `Follow these instructions to replace ``SiteMiddleware``
+    <https://docs.wagtail.io/en/stable/releases/2.9.html#sitemiddleware-and-request-site-deprecated>`_.
