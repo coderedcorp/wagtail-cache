@@ -13,20 +13,24 @@ def seconds_to_readable(seconds: int) -> str:
     Converts int seconds to a human readable string.
     """
     if seconds <= 0:
-        return '{0} {1}'.format(str(seconds), _('seconds'))
+        return "{0} {1}".format(str(seconds), _("seconds"))
 
     mins, secs = divmod(seconds, 60)
     hrs, mins = divmod(mins, 60)
     days, hrs = divmod(hrs, 24)
-    pretty_time = ''
+    pretty_time = ""
     if days > 0:
-        pretty_time += ' {0} {1}'.format(str(days), _('days') if days > 1 else _('day'))
+        pretty_time += " {0} {1}".format(str(days), _("days") if days > 1 else _("day"))
     if hrs > 0:
-        pretty_time += ' {0} {1}'.format(str(hrs), _('hours') if hrs > 1 else _('hour'))
+        pretty_time += " {0} {1}".format(str(hrs), _("hours") if hrs > 1 else _("hour"))
     if mins > 0:
-        pretty_time += ' {0} {1}'.format(str(mins), _('minutes') if mins > 1 else _('minute'))
+        pretty_time += " {0} {1}".format(
+            str(mins), _("minutes") if mins > 1 else _("minute")
+        )
     if secs > 0:
-        pretty_time += ' {0} {1}'.format(str(secs), _('seconds') if secs > 1 else _('second'))
+        pretty_time += " {0} {1}".format(
+            str(secs), _("seconds") if secs > 1 else _("second")
+        )
     return pretty_time
 
 

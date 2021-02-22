@@ -92,6 +92,9 @@ stages:
     - script: flake8 .
       displayName: 'CR-QC: Static analysis (flake8)'
 
+    - script: black --check .
+      displayName: 'CR-QC: Format check'
+
     - script: mypy ./wagtailcache/
       displayName: 'CR-QC: Type check (mypy)'
 

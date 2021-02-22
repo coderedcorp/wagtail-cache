@@ -9,18 +9,15 @@ from wagtail.documents import urls as wagtaildocs_urls
 from home import views
 
 urlpatterns = [
-    url(r'^django-admin/', admin.site.urls),
-
-    url(r'^admin/', include(wagtailadmin_urls)),
-    url(r'^documents/', include(wagtaildocs_urls)),
-
-    url(r'^views/cached-view/', views.cached_view, name="cached_view"),
-    url(r'^views/nocache-view/', views.nocached_view, name="nocached_view"),
-
+    url(r"^django-admin/", admin.site.urls),
+    url(r"^admin/", include(wagtailadmin_urls)),
+    url(r"^documents/", include(wagtaildocs_urls)),
+    url(r"^views/cached-view/", views.cached_view, name="cached_view"),
+    url(r"^views/nocache-view/", views.nocached_view, name="nocached_view"),
     # For anything not caught by a more specific rule above, hand over to
     # Wagtail's page serving mechanism. This should be the last pattern in
     # the list:
-    url(r'', include(wagtail_urls)),
+    url(r"", include(wagtail_urls)),
 ]
 
 

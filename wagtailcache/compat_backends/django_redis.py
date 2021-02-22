@@ -6,6 +6,7 @@ class RedisCache(BaseBackend):
     Extends django_redis.cache.RedisCache for compatibility
     with the Django cache middleware.
     """
+
     @omit_exception
     def set(self, *args, **kwargs):
         """

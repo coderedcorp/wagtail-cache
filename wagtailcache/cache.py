@@ -11,7 +11,10 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
 from django.utils.cache import (
-    get_cache_key, get_max_age, has_vary_header, learn_cache_key,
+    get_cache_key,
+    get_max_age,
+    has_vary_header,
+    learn_cache_key,
     patch_response_headers,
 )
 from django.utils.deprecation import MiddlewareMixin
@@ -24,6 +27,7 @@ class CacheControl(Enum):
     """
     "Cache-Control" header values.
     """
+
     NOCACHE = "no-cache"
     PRIVATE = "private"
 
@@ -32,6 +36,7 @@ class Status(Enum):
     """
     WAGTAIL_CACHE_HEADER header values.
     """
+
     HIT = "hit"
     MISS = "miss"
     SKIP = "skip"
@@ -66,13 +71,14 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         # Don't cache requests that have a logged in user.
         # NOTE: Wagtail manually adds `is_preview` to the request object. This
         #       not normally part of a request object.
-        is_cacheable = \
-            request.method in ('GET', 'HEAD') and \
-            not getattr(request, 'is_preview', False) and \
-            not (hasattr(request, 'user') and request.user.is_authenticated)
+        is_cacheable = (
+            request.method in ("GET", "HEAD")
+            and not getattr(request, "is_preview", False)
+            and not (hasattr(request, "user") and request.user.is_authenticated)
+        )
 
         # Allow the user to override our caching decision.
-        for fn in hooks.get_hooks('is_request_cacheable'):
+        for fn in hooks.get_hooks("is_request_cacheable"):
             result = fn(request, is_cacheable)
             if isinstance(result, bool):
                 is_cacheable = result
@@ -83,14 +89,14 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
             return None  # Don't bother checking the cache.
 
         # try and get the cached GET response
-        cache_key = get_cache_key(request, None, 'GET', cache=self._wagcache)
+        cache_key = get_cache_key(request, None, "GET", cache=self._wagcache)
         if cache_key is None:
             setattr(request, "_wagtailcache_update", True)
             return None  # No cache information available, need to rebuild.
         response = self._wagcache.get(cache_key)
         # if it wasn't found and we are looking for a HEAD, try looking just for that
-        if response is None and request.method == 'HEAD':
-            cache_key = get_cache_key(request, None, 'HEAD', cache=self._wagcache)
+        if response is None and request.method == "HEAD":
+            cache_key = get_cache_key(request, None, "HEAD", cache=self._wagcache)
             response = self._wagcache.get(cache_key)
 
         if response is None:
@@ -114,7 +120,9 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
 
-    def process_response(self, request: WSGIRequest, response: HttpResponse) -> HttpResponse:
+    def process_response(
+        self, request: WSGIRequest, response: HttpResponse
+    ) -> HttpResponse:
         if not wagtailcache_settings.WAGTAIL_CACHE:
             return response
 
@@ -132,20 +140,23 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         # Do cache 200, 301, 302, 304, and 404 codes so that wagtail doesn't
         #   have to repeatedly look up these URLs in the database.
         # Don't cache streaming responses.
-        is_cacheable = \
-            CacheControl.NOCACHE.value not in response.get("Cache-Control", "") and \
-            CacheControl.PRIVATE.value not in response.get("Cache-Control", "") and \
-            response.status_code in (200, 301, 302, 304, 404) and \
-            not response.streaming
+        is_cacheable = (
+            CacheControl.NOCACHE.value not in response.get("Cache-Control", "")
+            and CacheControl.PRIVATE.value not in response.get("Cache-Control", "")
+            and response.status_code in (200, 301, 302, 304, 404)
+            and not response.streaming
+        )
         # Don't cache 200 responses that set a user-specific cookie in response to
         # a cookie-less request (e.g. CSRF tokens).
         if is_cacheable and response.status_code == 200:
             is_cacheable = not (
-                not request.COOKIES and response.cookies and has_vary_header(response, 'Cookie')
+                not request.COOKIES
+                and response.cookies
+                and has_vary_header(response, "Cookie")
             )
 
         # Allow the user to override our caching decision.
-        for fn in hooks.get_hooks('is_response_cacheable'):
+        for fn in hooks.get_hooks("is_response_cacheable"):
             result = fn(response, is_cacheable)
             if isinstance(result, bool):
                 is_cacheable = result
@@ -163,7 +174,9 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             timeout = self._wagcache.default_timeout
         patch_response_headers(response, timeout)
         if timeout:
-            cache_key = learn_cache_key(request, response, timeout, None, cache=self._wagcache)
+            cache_key = learn_cache_key(
+                request, response, timeout, None, cache=self._wagcache
+            )
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
                     lambda r: self._wagcache.set(cache_key, r, timeout)
@@ -189,6 +202,7 @@ def cache_page(view_func: Callable[..., HttpResponse]):
     """
     Decorator that determines whether or not to cache a page or serve a cached page.
     """
+
     @wraps(view_func)
     def _wrapped_view_func(request: WSGIRequest, *args, **kwargs) -> HttpResponse:
         # Try to fetch an already cached page from wagtail-cache.
@@ -208,6 +222,7 @@ def nocache_page(view_func: Callable[..., HttpResponse]):
     """
     Decorator that sets no-cache on all responses.
     """
+
     @wraps(view_func)
     def _wrapped_view_func(request: WSGIRequest, *args, **kwargs) -> HttpResponse:
         # Run the view.
