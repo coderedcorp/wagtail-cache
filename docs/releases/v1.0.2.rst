@@ -5,6 +5,8 @@
 
 * Updated unit tests for Wagtail 2.12.
 
+* Apply ``black`` formatting to codebase.
+
 
 .. note::
 

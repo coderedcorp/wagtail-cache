@@ -7,6 +7,6 @@ from wagtailcache.views import index, clear
 
 
 urlpatterns = [
-    path('', index, name="index"),
-    path('clearcache', clear, name="clearcache"),
+    path("", index, name="index"),
+    path("clearcache", clear, name="clearcache"),
 ]
