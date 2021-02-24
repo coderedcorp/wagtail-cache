@@ -1,5 +1,4 @@
 -e ./
-alabaster
 black
 codespell
 flake8

@@ -26,7 +26,10 @@ def register_admin_urls():
     Registers wagtail-cache urls in the wagtail admin.
     """
     return [
-        path("cache/", include((urls, "wagtailcache"), namespace="wagtailcache_admin")),
+        path(
+            "cache/",
+            include((urls, "wagtailcache"), namespace="wagtailcache_admin"),
+        ),
     ]
 
 

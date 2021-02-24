@@ -20,26 +20,35 @@ def seconds_to_readable(seconds: int) -> str:
     days, hrs = divmod(hrs, 24)
     pretty_time = ""
     if days > 0:
-        pretty_time += " {0} {1}".format(str(days), _("days") if days > 1 else _("day"))
+        label = _("days") if days > 1 else _("day")
+        pretty_time += " {0} {1}".format(str(days), label)
     if hrs > 0:
-        pretty_time += " {0} {1}".format(str(hrs), _("hours") if hrs > 1 else _("hour"))
+        label = _("hours") if hrs > 1 else _("hour")
+        pretty_time += " {0} {1}".format(str(hrs), label)
     if mins > 0:
-        pretty_time += " {0} {1}".format(
-            str(mins), _("minutes") if mins > 1 else _("minute")
-        )
+        label = _("minutes") if mins > 1 else _("minute")
+        pretty_time += " {0} {1}".format(str(mins), label)
     if secs > 0:
-        pretty_time += " {0} {1}".format(
-            str(secs), _("seconds") if secs > 1 else _("second")
-        )
+        label = _("seconds") if secs > 1 else _("second")
+        pretty_time += " {0} {1}".format(str(secs), label)
+
     return pretty_time
 
 
 @register.filter
 def get_wagtailcache_setting(value: str) -> Optional[object]:
+    """
+    Returns a wagtailcache Django setting, or default.
+    """
     return getattr(wagtailcache_settings, value, None)
 
 
 @register.simple_tag
 def cache_timeout() -> str:
-    timeout = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].default_timeout
+    """
+    Returns the wagtailcache timeout in human readable format.
+    """
+    timeout = caches[
+        wagtailcache_settings.WAGTAIL_CACHE_BACKEND
+    ].default_timeout
     return seconds_to_readable(timeout)

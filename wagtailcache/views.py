@@ -14,7 +14,9 @@ def index(request):
     """
     The wagtail-cache admin panel.
     """
-    return render(request, "wagtailcache/index.html", {"cache_icon": CACHE_ICON})
+    return render(
+        request, "wagtailcache/index.html", {"cache_icon": CACHE_ICON}
+    )
 
 
 def clear(request):

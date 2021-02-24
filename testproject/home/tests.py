@@ -30,7 +30,9 @@ def hook_any(obj, is_cacheable: bool):
 class WagtailCacheTest(TestCase):
     @classmethod
     def get_content_type(cls, modelname: str):
-        ctype, _ = ContentType.objects.get_or_create(model=modelname, app_label="home")
+        ctype, _ = ContentType.objects.get_or_create(
+            model=modelname, app_label="home"
+        )
         return ctype
 
     @classmethod
@@ -66,7 +68,9 @@ class WagtailCacheTest(TestCase):
         cls.page_wagtailpage.add_child(instance=cls.page_cachedpage)
         cls.page_wagtailpage.add_child(instance=cls.page_cachedpage_restricted)
         cls.page_wagtailpage.add_child(instance=cls.page_cachecontrolpage)
-        cls.page_wagtailpage.add_child(instance=cls.page_callablecachecontrolpage)
+        cls.page_wagtailpage.add_child(
+            instance=cls.page_callablecachecontrolpage
+        )
 
         # Create the view restriction.
         cls.view_restriction = PageViewRestriction.objects.create(
@@ -131,10 +135,14 @@ class WagtailCacheTest(TestCase):
         """
         # HEAD
         response = self.client.head(url)
-        self.assertEqual(response.get(self.header_name, None), Status.MISS.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.MISS.value
+        )
         # GET
         response = self.client.get(url)
-        self.assertEqual(response.get(self.header_name, None), Status.MISS.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.MISS.value
+        )
         return response
 
     def get_skip(self, url: str):
@@ -144,14 +152,18 @@ class WagtailCacheTest(TestCase):
         """
         # HEAD
         response = self.client.head(url)
-        self.assertEqual(response.get(self.header_name, None), Status.SKIP.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.SKIP.value
+        )
         self.assertTrue(
             CacheControl.NOCACHE.value in response.get("Cache-Control", "")
             or CacheControl.PRIVATE.value in response.get("Cache-Control", "")
         )
         # GET
         response = self.client.get(url)
-        self.assertEqual(response.get(self.header_name, None), Status.SKIP.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.SKIP.value
+        )
         self.assertTrue(
             CacheControl.NOCACHE.value in response.get("Cache-Control", "")
             or CacheControl.PRIVATE.value in response.get("Cache-Control", "")
@@ -190,7 +202,9 @@ class WagtailCacheTest(TestCase):
                 "return_url": self.page_cachedpage_restricted.get_url(),
             },
         )
-        self.assertRedirects(response, self.page_cachedpage_restricted.get_url())
+        self.assertRedirects(
+            response, self.page_cachedpage_restricted.get_url()
+        )
         # First get should skip cache, and also be set to private.
         response = self.get_skip(self.page_cachedpage_restricted.get_url())
         self.assertEqual(response.status_code, 200)
@@ -337,29 +351,41 @@ class WagtailCacheTest(TestCase):
     def test_request_hook_true(self):
         # A POST should never be cached.
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(response.get(self.header_name, None), Status.SKIP.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.SKIP.value
+        )
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(response.get(self.header_name, None), Status.SKIP.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.SKIP.value
+        )
+
         # Register hook and assert it was actually registered.
         hooks.register("is_request_cacheable", hook_true)
         hook_fns = hooks.get_hooks("is_request_cacheable")
         self.assertEqual(hook_fns, [hook_true])
-        # Setting `is_request_cacheale=True` does not really do much, because the
-        # response still has the final say in whether or not the response is cached.
-        # The no-cache page will still not be cached due to the response.
-        # However a simple POST request will now be checked against the cache,
-        # although once again, it will probably not get cached due to the response.
+
+        # Setting `is_request_cacheale=True` does not really do much, because
+        # the response still has the final say in whether or not the response is
+        # cached. The no-cache page will still not be cached due to the
+        # response. However a simple POST request will now be checked against
+        # the cache, although once again, it will probably not get cached due to
+        # the response.
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(response.get(self.header_name, None), Status.MISS.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.MISS.value
+        )
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(response.get(self.header_name, None), Status.MISS.value)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.MISS.value
+        )
 
     def test_request_hook_false(self):
         # Register hook and assert it was actually registered.
         hooks.register("is_request_cacheable", hook_false)
         hook_fns = hooks.get_hooks("is_request_cacheable")
         self.assertEqual(hook_fns, [hook_false])
-        # The cached page should be force skipped due to the hook returning false.
+        # The cached page should be force skipped due to the hook returning
+        # false.
         self.get_skip(self.page_cachedpage.get_url())
         self.get_skip(self.page_cachedpage.get_url())
 
@@ -376,7 +402,8 @@ class WagtailCacheTest(TestCase):
         hooks.register("is_response_cacheable", hook_true)
         hook_fns = hooks.get_hooks("is_response_cacheable")
         self.assertEqual(hook_fns, [hook_true])
-        # The no-cache page should be force cached due to the hook returning true.
+        # The no-cache page should be force cached due to the hook returning
+        # true.
         self.get_miss(self.page_cachecontrolpage.get_url())
         self.get_hit(self.page_cachecontrolpage.get_url())
 
@@ -385,7 +412,8 @@ class WagtailCacheTest(TestCase):
         hooks.register("is_response_cacheable", hook_false)
         hook_fns = hooks.get_hooks("is_response_cacheable")
         self.assertEqual(hook_fns, [hook_false])
-        # The cached page should be force skipped due to the hook returning false.
+        # The cached page should be force skipped due to the hook returning
+        # false.
         self.get_skip(self.page_cachedpage.get_url())
         self.get_skip(self.page_cachedpage.get_url())
 
