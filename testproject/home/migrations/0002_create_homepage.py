@@ -15,7 +15,7 @@ def create_homepage(apps, schema_editor):
 
     # Create content type for homepage model
     homepage_content_type, __ = ContentType.objects.get_or_create(
-        model='homepage', app_label='home')
+        model='wagtailpage', app_label='home')
 
     # Create a new homepage
     homepage = WagtailPage.objects.create(

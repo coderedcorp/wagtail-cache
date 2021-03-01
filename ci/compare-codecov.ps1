@@ -42,7 +42,7 @@ $ApiBase = "https://dev.azure.com/$org/$project"
 
 # Get list of all recent builds.
 $mainBuildJson = (
-    Invoke-WebRequest "$ApiBase/_apis/build/builds?branchName=refs/heads/dev&api-version=5.1"
+    Invoke-WebRequest "$ApiBase/_apis/build/builds?branchName=refs/heads/main&api-version=5.1"
 ).Content | ConvertFrom-Json
 
 # Get the latest matching build ID from the list of builds.

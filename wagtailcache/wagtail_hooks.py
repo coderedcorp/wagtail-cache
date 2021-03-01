@@ -20,22 +20,26 @@ class CacheMenuItem(MenuItem):
         return request.user.is_superuser
 
 
-@hooks.register('register_admin_urls')
+@hooks.register("register_admin_urls")
 def register_admin_urls():
     """
     Registers wagtail-cache urls in the wagtail admin.
     """
     return [
-        path('cache/', include((urls, 'wagtailcache'), namespace='wagtailcache_admin')),
+        path(
+            "cache/",
+            include((urls, "wagtailcache"), namespace="wagtailcache_admin"),
+        ),
     ]
 
 
-@hooks.register('register_settings_menu_item')
+@hooks.register("register_settings_menu_item")
 def register_cache_menu():
     """
     Registers wagtail-cache settings panel in the wagtail admin.
     """
     return CacheMenuItem(
-        _('Cache'),
-        reverse('wagtailcache_admin:index'),
-        classnames='icon icon-' + CACHE_ICON)
+        _("Cache"),
+        reverse("wagtailcache_admin:index"),
+        classnames="icon icon-" + CACHE_ICON,
+    )

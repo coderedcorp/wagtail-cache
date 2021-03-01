@@ -5,7 +5,7 @@ from wagtailcache.cache import clear_cache
 
 
 class Command(BaseCommand):
-    help = 'Clears the cache for the entire site.'
+    help = "Clears the cache for the entire site."
 
     def handle(self, *args, **options):
         clear_cache()

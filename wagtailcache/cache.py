@@ -4,8 +4,7 @@ Functionality to set, serve from, and clear the cache.
 
 from enum import Enum
 from functools import wraps
-from typing import Callable, Optional, List
-from urllib.parse import urljoin, urlparse
+from typing import Callable, Optional
 
 from django.core.cache import caches
 from django.core.handlers.wsgi import WSGIRequest
@@ -45,18 +44,6 @@ def _patch_header(response: HttpResponse, status: Status) -> None:
     # Add our custom header.
     if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
         response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = status.value
-
-
-def _clean_uri(uri: str):
-    """
-    delete Trailingslash and Query Params if available by Config Flag
-    """
-    if not wagtailcache_settings.WAGTAIL_CACHE_KEYRING_WITH_QUERYS:
-        uri = urljoin(uri, urlparse(uri).path)
-        if uri[-1] == '/':
-            uri = uri[:-1]
-
-    return uri
 
 
 class FetchFromCacheMiddleware(MiddlewareMixin):
@@ -177,13 +164,6 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         patch_response_headers(response, timeout)
         if timeout:
             cache_key = learn_cache_key(request, response, timeout, None, cache=self._wagcache)
-
-            # Track cache keys.
-            uri = _clean_uri(request.build_absolute_uri())
-            keyring = self._wagcache.get('keyring', {})
-            keyring[uri] = keyring.get(uri, []) + [cache_key]
-            self._wagcache.set('keyring', keyring)
-
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
                     lambda r: self._wagcache.set(cache_key, r, timeout)
@@ -197,30 +177,13 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache(urls: List[str] = None) -> None:
+def clear_cache() -> None:
+    """
+    Clears the entire cache backend used by wagtail-cache.
+    """
     if wagtailcache_settings.WAGTAIL_CACHE:
-        _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        if _wagcache.has_key('keyring') and urls:
-            """
-            Cleans the Wagtail cache of the used cache backend with the passed URL list.
-            """
-            keyring = _wagcache.get('keyring')
+        caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND].clear()
 
-            for url in urls:
-                url = _clean_uri(url)
-                if url in keyring:
-                    for key in keyring[url]:
-                        if _wagcache.has_key(key):
-                            _wagcache.set(key, None, 0)
-
-                    del keyring[url]
-
-            _wagcache.set('keyring', keyring)
-        else:
-            """
-            Clears the entire cache backend used by wagtail-cache.
-            """
-            _wagcache.clear()
 
 def cache_page(view_func: Callable[..., HttpResponse]):
     """

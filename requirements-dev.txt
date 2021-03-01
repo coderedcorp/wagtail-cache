@@ -1,5 +1,5 @@
 -e ./
-alabaster
+black
 codespell
 flake8
 mypy

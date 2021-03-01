@@ -1,0 +1,17 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+max_line_length = 80
+trim_trailing_whitespace = true
+
+[*.{html,css,js,json,xml,yaml,yml}]
+indent_size = 2
+
+[*.{md,ps1,sh,py,rst}]
+indent_size = 4
