@@ -60,8 +60,8 @@ def _clean_uri(uri: str):
             - problems with reverse Proxy
             - problems with special characters e.g. Ü,Ä,ö,ß
     """
-    expr = r'https://www\.|http://www\.|https://www|http://|https://|www\.'
-    uri = re.sub(expr, "", uri).strip('/')
+    expr = r"https://www\.|http://www\.|https://www|http://|https://|www\."
+    uri = re.sub(expr, "", uri).strip("/")
 
     return unquote(uri)
 
@@ -201,9 +201,9 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 
             # Track cache keys
             uri = _clean_uri(request.build_absolute_uri())
-            keyring = self._wagcache.get('keyring', {})
+            keyring = self._wagcache.get("keyring", {})
             keyring[uri] = keyring.get(uri, []) + [cache_key]
-            self._wagcache.set('keyring', keyring)
+            self._wagcache.set("keyring", keyring)
 
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
@@ -225,8 +225,8 @@ def clear_cache(urls: List[str] = None) -> None:
     """
     if wagtailcache_settings.WAGTAIL_CACHE:
         _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        if urls and 'keyring' in _wagcache:
-            keyring = _wagcache.get('keyring')
+        if urls and "keyring" in _wagcache:
+            keyring = _wagcache.get("keyring")
 
             for uri in urls:
                 uri = _clean_uri(uri)
@@ -235,7 +235,7 @@ def clear_cache(urls: List[str] = None) -> None:
                         if key in _wagcache:
                             _wagcache.set(key, None, 0)
                     del keyring[uri]
-            _wagcache.set('keyring', keyring)
+            _wagcache.set("keyring", keyring)
         # Clears the entire cache backend used by wagtail-cache.
         else:
             _wagcache.clear()

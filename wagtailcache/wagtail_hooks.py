@@ -46,8 +46,8 @@ def register_cache_menu():
     )
 
 
-@hooks.register('after_create_page')
-@hooks.register('after_edit_page')
+@hooks.register("after_create_page")
+@hooks.register("after_edit_page")
 def clear_wagtailcache(request, page):
     clear_cache(
         [
