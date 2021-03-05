@@ -60,7 +60,8 @@ def _clean_uri(uri: str):
             - problems with reverse Proxy
             - problems with special characters e.g. Ü,Ä,ö,ß
     """
-    uri = re.sub(r'https://www\.|http://www\.|https://www|http://|https://|www\.', "", uri).strip('/')
+    expr = r'https://www\.|http://www\.|https://www|http://|https://|www\.'
+    uri = re.sub(expr, "", uri).strip('/')
 
     return unquote(uri)
 
@@ -224,14 +225,14 @@ def clear_cache(urls: List[str] = None) -> None:
     """
     if wagtailcache_settings.WAGTAIL_CACHE:
         _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        if urls and _wagcache.has_key('keyring'):
+        if urls and 'keyring' in _wagcache:
             keyring = _wagcache.get('keyring')
 
             for uri in urls:
                 uri = _clean_uri(uri)
                 if uri in keyring:
                     for key in keyring[uri]:
-                        if _wagcache.has_key(key):
+                        if key in _wagcache:
                             _wagcache.set(key, None, 0)
                     del keyring[uri]
             _wagcache.set('keyring', keyring)

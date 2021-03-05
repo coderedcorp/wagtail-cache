@@ -51,8 +51,8 @@ def register_cache_menu():
 def clear_wagtailcache(request, page):
     clear_cache(
         [
-            page.full_url, # page
-            page.get_parent().full_url, # category page
-            page.get_url_parts()[1], # root page
+            page.full_url,  # page
+            page.get_parent().full_url,  # category page
+            page.get_url_parts()[1],  # root page
         ]
     )
