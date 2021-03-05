@@ -11,7 +11,6 @@ class _DefaultSettings:
     WAGTAIL_CACHE = True
     WAGTAIL_CACHE_BACKEND = "default"
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
-    WAGTAIL_CACHE_KEYRING_WITH_QUERYS = True
 
     def __getattribute__(self, attr: Text):
         return getattr(settings, attr, super().__getattribute__(attr))
