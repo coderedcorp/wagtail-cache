@@ -8,7 +8,6 @@ from wagtail.admin.menu import MenuItem
 from wagtail.core import hooks
 
 from wagtailcache import urls
-from wagtailcache.cache import clear_cache
 from wagtailcache.icon import CACHE_ICON
 
 

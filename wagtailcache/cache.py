@@ -208,7 +208,6 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 def clear_cache(urls: List[str] = None) -> None:
     """
     Cleans the Wagtail cache of the used cache backend with the passed URL list.
-    example: ``clear_cache(["http://127.0.0.1:8000/(?:\?|$)"])``
     default: clear all
     """
 

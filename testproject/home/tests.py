@@ -16,6 +16,7 @@ from home.models import (
     WagtailPage,
 )
 
+
 def hook_true(obj, is_cacheable: bool) -> bool:
     return True
 
