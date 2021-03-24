@@ -3,7 +3,6 @@ from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.cache import caches
-
 from wagtailcache.settings import wagtailcache_settings
 from wagtailcache.cache import CacheControl, Status, clear_cache
 from wagtail.core import hooks
@@ -333,7 +332,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
         # Get first key from keyring
         key = next(iter(self.cache.get("keyring")))
-        url = 'http://%s%s' % ('testserver', self.page_cachedpage.get_url())
+        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
         # Compare Keys
         self.assertEqual(key, url)
 

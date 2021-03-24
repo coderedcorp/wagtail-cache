@@ -217,7 +217,9 @@ def clear_cache(urls: List[str] = None) -> None:
             _keyring = _wagcache.get("keyring")
             for uri in urls:
                 _uri = unquote(uri)
-                _keyring_match = list(filter(lambda k: re.match(_uri, k), _keyring))
+                _keyring_match = list(
+                    filter(lambda k: re.match(_uri, k), _keyring)
+                )
                 if _keyring_match:
                     for key in _keyring_match:
                         _wagcache_keys = _keyring.get(key)
