@@ -2,6 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.cache import caches
+
 from wagtailcache.settings import wagtailcache_settings
 from wagtailcache.cache import CacheControl, Status, clear_cache
 from wagtail.core import hooks
@@ -13,7 +15,6 @@ from home.models import (
     CallableCacheControlPage,
     WagtailPage,
 )
-
 
 def hook_true(obj, is_cacheable: bool) -> bool:
     return True
@@ -38,6 +39,7 @@ class WagtailCacheTest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.header_name = wagtailcache_settings.WAGTAIL_CACHE_HEADER
+        cls.cache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         # Create an admin user.
         cls.user = User.objects.create(
             username="admin",
@@ -318,6 +320,40 @@ class WagtailCacheTest(TestCase):
         response = self.client.get(reverse("wagtailcache:clearcache"))
         self.client.logout()
         self.assertEqual(response.status_code, 200)
+        # Now the page should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+
+    # ---- PURGE SPECIFIC URLS & CLEAR ALL-------------------------------------------------
+
+    def test_cache_keyring(self):
+        # Check if keyring is not present
+        self.assertEqual(self.cache.get("keyring"), None)
+        # Get should hit cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # Get first key from keyring
+        key = next(iter(self.cache.get("keyring")))
+        url = 'http://%s%s' % ('testserver', self.page_cachedpage.get_url())
+        # Compare Keys
+        self.assertEqual(key, url)
+
+    def test_clearcache(self):
+        # First get should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # Second get should hit cache.
+        self.get_hit(self.page_cachedpage.get_url())
+        # clear all from Cache
+        clear_cache()
+        # Now the page should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+
+        # Purge specific Url
+        # First get should hit cache.
+        self.get_hit(self.page_cachedpage.get_url())
+        keyring = []
+        for page in self.should_cache_pages:
+            # Add Url to keyring
+            keyring += page.get_url()
+        clear_cache(keyring)
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 

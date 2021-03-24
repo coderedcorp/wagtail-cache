@@ -6,7 +6,6 @@ from enum import Enum
 from functools import wraps
 from typing import Callable, Optional, List
 from urllib.parse import unquote
-
 from django.core.cache import caches
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
@@ -50,20 +49,6 @@ def _patch_header(response: HttpResponse, status: Status) -> None:
     # Add our custom header.
     if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
         response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = status.value
-
-
-def _clean_uri(uri: str):
-    """
-    remove Trailingslash , remove protocol and subdomain and decode URI.
-    Reasons:
-            - clean keyring
-            - problems with reverse Proxy
-            - problems with special characters e.g. Ü,Ä,ö,ß
-    """
-    expr = r"https://www\.|http://www\.|https://www|http://|https://|www\."
-    uri = re.sub(expr, "", uri).strip("/")
-
-    return unquote(uri)
 
 
 class FetchFromCacheMiddleware(MiddlewareMixin):
@@ -200,10 +185,12 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             )
 
             # Track cache keys
-            uri = _clean_uri(request.build_absolute_uri())
+            uri = unquote(request.build_absolute_uri())
             keyring = self._wagcache.get("keyring", {})
-            keyring[uri] = keyring.get(uri, []) + [cache_key]
-            self._wagcache.set("keyring", keyring)
+
+            if not re.findall("robots.txt|favicon.ico", uri) and is_cacheable:
+                keyring[uri] = keyring.get(uri, []) + [cache_key]
+                self._wagcache.set("keyring", keyring)
 
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
@@ -221,21 +208,25 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 def clear_cache(urls: List[str] = None) -> None:
     """
     Cleans the Wagtail cache of the used cache backend with the passed URL list.
+    example: ``clear_cache(["http://127.0.0.1:8000/(?:\?|$)"])``
     default: clear all
     """
+
     if wagtailcache_settings.WAGTAIL_CACHE:
         _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         if urls and "keyring" in _wagcache:
-            keyring = _wagcache.get("keyring")
-
+            _keyring = _wagcache.get("keyring")
             for uri in urls:
-                uri = _clean_uri(uri)
-                if uri in keyring:
-                    for key in keyring[uri]:
-                        if key in _wagcache:
-                            _wagcache.set(key, None, 0)
-                    del keyring[uri]
-            _wagcache.set("keyring", keyring)
+                _uri = unquote(uri)
+                _keyring_match = list(filter(lambda k: re.match(_uri, k), _keyring))
+                if _keyring_match:
+                    for key in _keyring_match:
+                        _wagcache_keys = _keyring.get(key)
+                        for wk in _wagcache_keys:
+                            if wk in _wagcache:
+                                _wagcache.set(wk, None, 0)
+                        del _keyring[key]
+            _wagcache.set("keyring", _keyring)
         # Clears the entire cache backend used by wagtail-cache.
         else:
             _wagcache.clear()
