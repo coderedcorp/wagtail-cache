@@ -1,8 +1,8 @@
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
 from django.utils.cache import cc_delim_re
-from django.contrib.auth.models import User
 from wagtailcache.settings import wagtailcache_settings
 from wagtailcache.cache import CacheControl, Status, clear_cache
 from wagtail.core import hooks
