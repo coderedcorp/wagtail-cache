@@ -68,13 +68,16 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         # Check if request is cacheable
         # Only cache GET and HEAD requests.
         # Don't cache requests that are previews.
-        # Don't cache requests that have a logged in user.
+        # Don't cache requests that have a logged in user
+        #    - We make use of `request.session.is_empty()` instead of
+        #      `request.user` to avoid adding `Vary: Cookie` unconditionally.
+        #      This also picks up AnonymousUsers with session data.
         # NOTE: Wagtail manually adds `is_preview` to the request object.
         #       This is not normally part of a request object.
         is_cacheable = (
             request.method in ("GET", "HEAD")
             and not getattr(request, "is_preview", False)
-            and not (hasattr(request, "user") and request.user.is_authenticated)
+            and request.session.is_empty()
         )
 
         # Allow the user to override our caching decision.
