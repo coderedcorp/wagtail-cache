@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
+from django.utils.cache import cc_delim_re
 from django.contrib.auth.models import User
 from wagtailcache.settings import wagtailcache_settings
 from wagtailcache.cache import CacheControl, Status, clear_cache
@@ -170,6 +171,18 @@ class WagtailCacheTest(TestCase):
         )
         return response
 
+    def parse_vary_header(self, response):
+        if 'Vary' in response:
+            return {h.lower() for h in cc_delim_re.split(response['Vary'])}
+        return {}
+
+    def should_vary_cookie(self, response):
+        self.assertIn('cookie', self.parse_vary_header(response))
+
+    def should_not_vary_cookie(self, response):
+        self.assertNotIn('cookie', self.parse_vary_header(response))
+
+
     # ---- TEST PAGES ----------------------------------------------------------
 
     def test_page_miss(self):
@@ -211,12 +224,21 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(
             response.get("Cache-Control", None), CacheControl.PRIVATE.value
         )
+        self.should_vary_cookie(response)
         # Second get should continue to skip and also be set to private.
         response = self.get_skip(self.page_cachedpage_restricted.get_url())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get("Cache-Control", None), CacheControl.PRIVATE.value
         )
+        self.should_vary_cookie(response)
+
+    def test_page_without_vary_cookie(self):
+        for page in self.should_cache_pages:
+            # First get should miss cache.
+            self.should_not_vary_cookie(self.get_miss(page.get_url()))
+            # Second get should hit cache.
+            self.should_not_vary_cookie(self.get_hit(page.get_url()))
 
     def test_page_404(self):
         # 404s should also be cached.
@@ -299,6 +321,26 @@ class WagtailCacheTest(TestCase):
         self.get_skip(reverse("nocached_view"))
         # Second get should continue to skip.
         self.get_skip(reverse("nocached_view"))
+
+    @modify_settings(
+        MIDDLEWARE={
+            "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
+            "remove": "wagtailcache.cache.FetchFromCacheMiddleware",  # noqa
+        }
+    )
+    def test_view_without_vary_cookie(self):
+        self.should_not_vary_cookie(self.get_miss(reverse("cached_view")))
+        self.should_not_vary_cookie(self.get_hit(reverse("cached_view")))
+
+    @modify_settings(
+        MIDDLEWARE={
+            "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
+            "remove": "wagtailcache.cache.FetchFromCacheMiddleware",  # noqa
+        }
+    )
+    def test_view_does_vary_cookie(self):
+        self.should_vary_cookie(self.get_miss(reverse("cookie_view")))
+        self.should_vary_cookie(self.get_hit(reverse("cookie_view")))
 
     # ---- ADMIN VIEWS ---------------------------------------------------------
 
