@@ -182,7 +182,6 @@ class WagtailCacheTest(TestCase):
     def should_not_vary_cookie(self, response):
         self.assertNotIn('cookie', self.parse_vary_header(response))
 
-
     # ---- TEST PAGES ----------------------------------------------------------
 
     def test_page_miss(self):
