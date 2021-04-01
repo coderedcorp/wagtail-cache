@@ -172,15 +172,15 @@ class WagtailCacheTest(TestCase):
         return response
 
     def parse_vary_header(self, response):
-        if 'Vary' in response:
-            return {h.lower() for h in cc_delim_re.split(response['Vary'])}
+        if "Vary" in response:
+            return {h.lower() for h in cc_delim_re.split(response["Vary"])}
         return {}
 
     def should_vary_cookie(self, response):
-        self.assertIn('cookie', self.parse_vary_header(response))
+        self.assertIn("cookie", self.parse_vary_header(response))
 
     def should_not_vary_cookie(self, response):
-        self.assertNotIn('cookie', self.parse_vary_header(response))
+        self.assertNotIn("cookie", self.parse_vary_header(response))
 
     # ---- TEST PAGES ----------------------------------------------------------
 
