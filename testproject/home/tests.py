@@ -341,8 +341,10 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
         # Second get should hit cache.
         self.get_hit(self.page_cachedpage.get_url())
+
         # clear all from Cache
         clear_cache()
+
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
