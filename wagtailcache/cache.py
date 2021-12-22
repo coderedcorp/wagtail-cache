@@ -205,7 +205,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache(urls: list[str] = None) -> None:
+def clear_cache(urls: List[str] = None) -> None:
     """
     Cleans the Wagtail cache of the used cache backend with the passed URL list.
     default: clear all
