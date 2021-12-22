@@ -230,7 +230,6 @@ def clear_cache(urls: List[str] = None) -> None:
                                 _wagcache.set(wk, None, 0)
 
                         del _keyring[key]
-            
             if _keyring:
                 _wagcache.set("keyring", _keyring)
             else:
