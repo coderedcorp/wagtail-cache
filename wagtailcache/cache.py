@@ -205,7 +205,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache(urls: List[str] = None) -> None:
+def clear_cache(urls: list[str] = None) -> None:
     """
     Cleans the Wagtail cache of the used cache backend with the passed URL list.
     default: clear all
@@ -215,19 +215,25 @@ def clear_cache(urls: List[str] = None) -> None:
         _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         if urls and "keyring" in _wagcache:
             _keyring = _wagcache.get("keyring")
+
             for uri in urls:
                 _uri = unquote(uri)
                 _keyring_match = list(
                     filter(lambda k: re.match(_uri, k), _keyring)
                 )
+
                 if _keyring_match:
                     for key in _keyring_match:
                         _wagcache_keys = _keyring.get(key)
                         for wk in _wagcache_keys:
                             if wk in _wagcache:
                                 _wagcache.set(wk, None, 0)
+
                         del _keyring[key]
-            _wagcache.set("keyring", _keyring)
+            if _keyring:
+                _wagcache.set("keyring", _keyring)
+            else:
+                _wagcache.set("keyring", None, 0)
         # Clears the entire cache backend used by wagtail-cache.
         else:
             _wagcache.clear()

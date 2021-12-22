@@ -336,7 +336,7 @@ class WagtailCacheTest(TestCase):
         # Compare Keys
         self.assertEqual(key, url)
 
-    def test_clearcache(self):
+    def test_clear_cache(self):
         # First get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
         # Second get should hit cache.
@@ -347,13 +347,16 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
 
         # Purge specific Url
-        # First get should hit cache.
         self.get_hit(self.page_cachedpage.get_url())
-        keyring = []
-        for page in self.should_cache_pages:
-            # Add Url to keyring
-            keyring += page.get_url()
-        clear_cache(keyring)
+        self.get_miss(self.page_cachedpage.get_url() + "?action=pytest")
+
+        url_from_keyring = next(iter(self.cache.get("keyring")))
+
+        clear_cache([url_from_keyring + "(?:\?|$)"])
+
+        # Check if keyring is not present
+        self.assertEqual(self.cache.get("keyring"), None)
+
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
