@@ -352,7 +352,7 @@ class WagtailCacheTest(TestCase):
 
         url_from_keyring = next(iter(self.cache.get("keyring")))
 
-        clear_cache([url_from_keyring + "(?:\?|$)"])
+        clear_cache([url_from_keyring + r"(?:\?|$)"])
 
         # Check if keyring is not present
         self.assertEqual(self.cache.get("keyring"), None)
