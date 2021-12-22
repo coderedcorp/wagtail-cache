@@ -230,10 +230,11 @@ def clear_cache(urls: List[str] = None) -> None:
                                 _wagcache.set(wk, None, 0)
 
                         del _keyring[key]
-            if _keyring:
-                _wagcache.set("keyring", _keyring)
-            else:
-                _wagcache.set("keyring", None, 0)
+            # TODO: is needed?
+            #if _keyring:
+            _wagcache.set("keyring", _keyring)
+            #else:
+            #    _wagcache.set("keyring", None, 0)
         # Clears the entire cache backend used by wagtail-cache.
         else:
             _wagcache.clear()
