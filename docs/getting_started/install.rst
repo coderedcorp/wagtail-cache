@@ -47,8 +47,8 @@ suitable for use on any web server::
     }
 
 
-3. Instruct pages how to cache (optional)
------------------------------------------
+3. Instruct pages how to cache
+------------------------------
 
 There are many situations where a specific page should not be cached. For example,
 a page with privacy or view restrictions (e.g. password, login required), or possibly a form or
