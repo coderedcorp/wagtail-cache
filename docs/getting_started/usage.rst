@@ -40,3 +40,42 @@ To accomplish this, use a wagtail hook as so::
     def clear_wagtailcache(request, page):
         if page.live:
             clear_cache()
+
+
+Purge specific URLs
+-------------------
+
+Sometimes you only want to delete specific pages in the cache automatically after publishing a page.
+To achieve this, use a wagtail hook as follows
+
+Only this exact url is used as a key::
+
+    from wagtailcache.cache import clear_cache
+
+    @hooks.register("after_create_page")
+    @hooks.register("after_edit_page")
+    def clear_wagtailcache(request, page):
+        if page.live:
+            clear_cache(
+                [
+                    page.full_url,  # page
+                    page.get_parent().full_url,  # category page
+                    page.get_url_parts()[1],  # root page
+                ]
+            )
+
+Or we use Regular Expressions. Now all specific urls are matched, even those with Get parameters::
+
+    from wagtailcache.cache import clear_cache
+
+    @hooks.register("after_create_page")
+    @hooks.register("after_edit_page")
+    def clear_wagtailcache(request, page):
+        if page.live:
+            clear_cache(
+                [
+                    page.full_url + "(?:\?|$)",  # page
+                    page.get_parent().full_url + "(?:\?|$)",  # category page
+                    page.get_url_parts()[1] + "(?:\?|$)",  # root page
+                ]
+            )
