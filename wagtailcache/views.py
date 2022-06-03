@@ -1,27 +1,38 @@
 """
 Views for the wagtail admin dashboard.
 """
+from typing import Dict, List
 
-from django.http import HttpResponse
+from django.core.cache import caches
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 from wagtailcache.cache import clear_cache
 from wagtailcache.icon import CACHE_ICON
+from wagtailcache.settings import wagtailcache_settings
 
 
 def index(request):
     """
     The wagtail-cache admin panel.
     """
+    # Get the keyring to show cache contents.
+    _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
+    keyring: Dict[str, List[str]] = _wagcache.get("keyring", {})
     return render(
-        request, "wagtailcache/index.html", {"cache_icon": CACHE_ICON}
+        request,
+        "wagtailcache/index.html",
+        {
+            "cache_icon": CACHE_ICON,
+            "keyring": keyring,
+        },
     )
 
 
 def clear(request):
     """
-    AJAX call to clear the cache.
+    Clear the cache and redirect back to the admin settings page.
     """
     clear_cache()
-    return HttpResponse(_("Cache has been cleared."))
+    return HttpResponseRedirect(reverse("wagtailcache_admin:index"))

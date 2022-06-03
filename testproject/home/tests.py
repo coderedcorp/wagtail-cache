@@ -319,7 +319,7 @@ class WagtailCacheTest(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("wagtailcache:clearcache"))
         self.client.logout()
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
@@ -348,19 +348,28 @@ class WagtailCacheTest(TestCase):
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
-        # Purge specific Url
-        self.get_hit(self.page_cachedpage.get_url())
-        self.get_miss(self.page_cachedpage.get_url() + "?action=pytest")
+    def test_clear_cache_url(self):
+        u1 = self.page_cachedpage.get_url()
+        u2 = self.page_cachedpage.get_url() + "?action=pytest"
 
-        url_from_keyring = next(iter(self.cache.get("keyring")))
+        # First get should miss cache.
+        self.get_miss(u1)
+        self.get_miss(u2)
 
-        clear_cache([url_from_keyring + r"(?:\?|$)"])
+        # Second get should hit cache.
+        self.get_hit(u1)
+        self.get_hit(u2)
 
-        # Check if keyring is not present
-        self.assertEqual(self.cache.get("keyring"), None)
+        # Clear only the second URL, using a regex.
+        clear_cache(
+            [
+                r".*" + u1 + r"[\?\&]action=",
+            ]
+        )
 
-        # Now the page should miss cache.
-        self.get_miss(self.page_cachedpage.get_url())
+        # url1 should still hit, but url2 should miss.
+        self.get_hit(u1)
+        self.get_miss(u2)
 
     # ---- ALTERNATE SETTINGS --------------------------------------------------
 
