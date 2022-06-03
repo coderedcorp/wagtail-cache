@@ -184,13 +184,16 @@ class UpdateCacheMiddleware(MiddlewareMixin):
                 request, response, timeout, None, cache=self._wagcache
             )
 
-            # Track cache keys
+            # Track cache keys based on URI.
             uri = unquote(request.build_absolute_uri())
             keyring = self._wagcache.get("keyring", {})
-
-            if not re.findall("robots.txt|favicon.ico", uri) and is_cacheable:
-                keyring[uri] = keyring.get(uri, []) + [cache_key]
-                self._wagcache.set("keyring", keyring)
+            # Get current cache keys belonging to this URI.
+            # This should be a list of keys.
+            uri_keys: List[str] = keyring.get(uri, [])
+            # Append the key to this list and save.
+            uri_keys.append(cache_key)
+            keyring[uri] = uri_keys
+            self._wagcache.set("keyring", keyring)
 
             if isinstance(response, SimpleTemplateResponse):
                 response.add_post_render_callback(
@@ -207,36 +210,43 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 
 def clear_cache(urls: List[str] = None) -> None:
     """
-    Cleans the Wagtail cache of the used cache backend with the passed URL list.
-    default: clear all
+    Clears the Wagtail cache backend.
+
+    :param urls: An optional list of strings, representing regular expressions
+    to match against the list of URLs in the cache. If a URL matches, it is
+    deleted from the cache. If ``urls`` is ``None`` the entire cache is cleared.
     """
 
-    if wagtailcache_settings.WAGTAIL_CACHE:
-        _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        if urls and "keyring" in _wagcache:
-            _keyring = _wagcache.get("keyring")
+    if not wagtailcache_settings.WAGTAIL_CACHE:
+        return
 
-            for uri in urls:
-                _uri = unquote(uri)
-                _keyring_match = list(
-                    filter(lambda k: re.match(_uri, k), _keyring)
-                )
+    _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
+    if urls and "keyring" in _wagcache:
+        keyring = _wagcache.get("keyring")
 
-                if _keyring_match:
-                    for key in _keyring_match:
-                        _wagcache_keys = _keyring.get(key)
-                        for wk in _wagcache_keys:
-                            if wk in _wagcache:
-                                _wagcache.set(wk, None, 0)
+        # Check the provided URL matches a key in our keyring.
+        matched_urls = []
+        for regex in urls:
+            for key in keyring:
+                print(f"comparing '{regex}' to '{key}'")
+                if re.match(regex, key):
+                    print("matched!")
+                    matched_urls.append(key)
 
-                        del _keyring[key]
-            if _keyring:
-                _wagcache.set("keyring", _keyring)
-            else:
-                _wagcache.set("keyring", None, 0)
-        # Clears the entire cache backend used by wagtail-cache.
-        else:
-            _wagcache.clear()
+        # If it matches, delete each entry from the cache,
+        # and delete the URL from the keyring.
+        for url in matched_urls:
+            entries = keyring.get(url, [])
+            for cache_key in entries:
+                _wagcache.delete(cache_key)
+            del keyring[url]
+
+        # Save the keyring.
+        _wagcache.set("keyring", keyring)
+
+    # Clears the entire cache backend used by wagtail-cache.
+    else:
+        _wagcache.clear()
 
 
 def cache_page(view_func: Callable[..., HttpResponse]):
