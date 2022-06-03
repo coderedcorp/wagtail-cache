@@ -9,7 +9,6 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from wagtailcache.cache import clear_cache
-from wagtailcache.icon import CACHE_ICON
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -24,7 +23,6 @@ def index(request):
         request,
         "wagtailcache/index.html",
         {
-            "cache_icon": CACHE_ICON,
             "keyring": keyring,
         },
     )

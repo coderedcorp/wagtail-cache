@@ -8,7 +8,6 @@ from wagtail.admin.menu import MenuItem
 from wagtail import hooks
 
 from wagtailcache import urls
-from wagtailcache.icon import CACHE_ICON
 
 
 class CacheMenuItem(MenuItem):
@@ -41,5 +40,17 @@ def register_cache_menu():
     return CacheMenuItem(
         _("Cache"),
         reverse("wagtailcache_admin:index"),
-        classnames="icon icon-" + CACHE_ICON,
+        icon_name="wagtailcache-bolt",
     )
+
+
+@hooks.register("register_icons")
+def register_icons(icons):
+    """
+    Add custom SVG icons to the Wagtail admin.
+    """
+    # These SVG files should be in the django templates folder, and follow exact
+    # specifications to work with Wagtail:
+    # https://github.com/wagtail/wagtail/pull/6028
+    icons.append("wagtailcache/wagtailcache-bolt.svg")
+    return icons
