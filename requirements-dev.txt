@@ -7,6 +7,6 @@ pytest
 pytest-cov
 pytest-django
 sphinx
-sphinx-library
+sphinx-wagtail-theme
 twine
 wheel
