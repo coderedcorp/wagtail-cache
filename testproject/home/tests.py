@@ -319,7 +319,7 @@ class WagtailCacheTest(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("wagtailcache:clearcache"))
         self.client.logout()
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
