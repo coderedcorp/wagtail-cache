@@ -7,7 +7,6 @@ from django.core.cache import caches
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
 from wagtailcache.cache import clear_cache
 from wagtailcache.icon import CACHE_ICON
