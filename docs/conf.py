@@ -40,32 +40,28 @@ language = "en"
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+# Add any paths that contain templates here, relative to this directory.
+templates_path = ["_templates"]
+
+extensions = ["sphinx_wagtail_theme"]
+
 
 # -- Options for HTML output -------------------------------------------------
 
 html_show_sourcelink = False
 
-html_theme = "library"
+html_theme = "sphinx_wagtail_theme"
 
-html_sidebars = {
-    "**": [
-        "about.html",  # Project name, description, etc.
-        "searchbox.html",  # Search.
-        "globaltoc.html",  # Global table of contents.
-        "readingmodes.html",  # Light/sepia/dark color schemes.
-        "sponsors.html",  # Fancy sponsor links.
-    ]
-}
+html_sidebars = {"**": ["searchbox.html", "globaltoc.html", "sponsor.html"]}
 
 html_theme_options = {
-    "description": "A fast and simple page cache for Wagtail.",
-    "sponsors": [
-        {
-            "href": "https://github.com/coderedcorp/wagtail-cache",
-            "image": "https://docs.coderedcorp.com/logo-square-red-128.png",
-            "note": "This project is comercially supported by CodeRed.",
-        }
-    ],
+    "project_name": "wagtail-cache",
+    "github_url": "https://github.com/coderedcorp/wagtail-cache/blob/main/docs/",
+    "footer_links": (
+        "Wagtail Hosting by CodeRed|https://www.codered.cloud/,"
+        "Wagtail Cache on GitHub|https://github.com/coderedcorp/wagtail-cache,"
+        "About CodeRed|https://www.coderedcorp.com/"
+    ),
 }
 
 html_last_updated_fmt = ""

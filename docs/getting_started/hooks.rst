@@ -11,7 +11,9 @@ decision. The ``bool`` passed in represents the current caching decision. So if 
 ``is_request_cacheable`` hooks called, each one would receive the result of the previous. Use this
 variable as you see fit to help with your own logic.
 
-For example::
+For example:
+
+.. code-block:: python
 
     from wagtail.core import hooks
 
@@ -33,7 +35,9 @@ decision. The ``bool`` passed in represents the current caching decision. So if 
 ``is_response_cacheable`` hooks called, each one would receive the result of the previous. Use this
 variable as you see fit to help with your own logic.
 
-For example::
+For example:
+
+.. code-block:: python
 
     from wagtail.core import hooks
 
