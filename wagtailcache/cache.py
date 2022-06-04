@@ -7,6 +7,7 @@ from functools import wraps
 from typing import Callable, Optional, List
 from urllib.parse import unquote
 from django.core.cache import caches
+from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
@@ -51,6 +52,51 @@ def _patch_header(response: HttpResponse, status: Status) -> None:
         response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = status.value
 
 
+def _chop_querystring(r: WSGIRequest) -> WSGIRequest:
+    """
+    Given a request object, remove any of our ignored querystrings from it.
+    """
+    if len(r.GET) and wagtailcache_settings.WAGTAIL_CACHE_IGNORE_QS:
+        print(r.build_absolute_uri())
+        # Make a copy of querystrings, and delete any that should be ignored.
+        qs = r.GET.copy()
+        for q in r.GET:
+            for regex in wagtailcache_settings.WAGTAIL_CACHE_IGNORE_QS:
+                if re.match(regex, q):
+                    del qs[q]
+        # Mutate the request to include our chopped up querystrings. We must
+        # also mutate the raw QUERY_STRING as that is used within
+        # ``request.build_absolute_uri()`` which is used in Django cache
+        # middleware internals.
+        r.GET = qs
+        r.META["QUERY_STRING"] = qs.urlencode()
+    return r
+
+
+def _get_cache_key(r: WSGIRequest, c: BaseCache) -> str:
+    """
+    Wrapper for Django's get_cache_key which first strips specific
+    querystrings. Since the Django cache middleware is somewhat complicated and
+    RFC compliant, we are best off to chop and pass it along rather than
+    re-inventing the cache keying logic.
+    """
+    r = _chop_querystring(r)
+    return get_cache_key(r, None, r.method, c)
+
+
+def _learn_cache_key(
+    r: WSGIRequest, s: HttpResponse, t: int, c: BaseCache
+) -> str:
+    """
+    Wrapper for Django's learn_cache_key which first strips specific
+    querystrings. Since the Django cache middleware is somewhat complicated and
+    RFC compliant, we are best off to chop and pass it along rather than
+    re-inventing the cache keying logic.
+    """
+    r = _chop_querystring(r)
+    return learn_cache_key(r, s, t, None, c)
+
+
 class FetchFromCacheMiddleware(MiddlewareMixin):
     """
     Loads a request from the cache if it exists.
@@ -88,20 +134,13 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
             setattr(request, "_wagtailcache_skip", True)
             return None  # Don't bother checking the cache.
 
-        # Try and get the cached GET response.
-        cache_key = get_cache_key(request, None, "GET", cache=self._wagcache)
+        # Try and get the cached response.
+        cache_key = _get_cache_key(request, self._wagcache)
         if cache_key is None:
             setattr(request, "_wagtailcache_update", True)
             return None  # No cache information available, need to rebuild.
 
         response = self._wagcache.get(cache_key)
-
-        # If it wasn't found and a HEAD was requested, try looking for that.
-        if response is None and request.method == "HEAD":
-            cache_key = get_cache_key(
-                request, None, "HEAD", cache=self._wagcache
-            )
-            response = self._wagcache.get(cache_key)
 
         if response is None:
             setattr(request, "_wagtailcache_update", True)
@@ -180,12 +219,14 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             timeout = self._wagcache.default_timeout
         patch_response_headers(response, timeout)
         if timeout:
-            cache_key = learn_cache_key(
-                request, response, timeout, None, cache=self._wagcache
+            cache_key = _learn_cache_key(
+                request, response, timeout, self._wagcache
             )
 
             # Track cache keys based on URI.
-            uri = unquote(request.build_absolute_uri())
+            # (of the chopped request, not the real one).
+            cr = _chop_querystring(request)
+            uri = unquote(cr.build_absolute_uri())
             keyring = self._wagcache.get("keyring", {})
             # Get current cache keys belonging to this URI.
             # This should be a list of keys.
