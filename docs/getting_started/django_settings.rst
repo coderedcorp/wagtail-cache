@@ -31,7 +31,7 @@ WAGTAIL_CACHE_IGNORE_QS
 
 .. versionadded:: 2.0
 
-   This setting will ignore tracking/advertising URL paramters, and is ON by
+   This setting will ignore tracking/advertising URL parameters, and is ON by
    default. To restore the old behavior, set to ``None``.
 
 A list of strings (regular expressions) to ignore from the URL querystring when
@@ -44,7 +44,7 @@ a sysadmin's worst nightmare as they effectively bust any semblance of a cache
 and senselessly spike server load. `The defaults are defined here
 <https://github.com/coderedcorp/wagtail-cache/blob/main/wagtailcache/settings.py>`_.
 
-If you use these querystring paramters for server-side logic, or if you find
+If you use these querystring parameters for server-side logic, or if you find
 that Wagtail Cache is serving incorrect page contents, you may need to customize
 or disable this setting.
 
