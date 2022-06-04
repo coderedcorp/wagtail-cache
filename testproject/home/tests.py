@@ -459,9 +459,7 @@ class WagtailCacheTest(TestCase):
             response.get(self.header_name, None), Status.MISS.value
         )
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(
-            response.get(self.header_name, None), Status.HIT.value
-        )
+        self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
 
     def test_request_hook_false(self):
         # Register hook and assert it was actually registered.
