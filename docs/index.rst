@@ -23,7 +23,9 @@ This cache feature was originally part of `coderedcms
 <https://github.com/coderedcorp/coderedcms>`_ and is in use successfully on live
 production sites.
 
-Requires Wagtail >= 2.0
+Version 1.x supports Wagtail 2.
+
+Version 2.x supports Wagtail 3.
 
 
 Contents

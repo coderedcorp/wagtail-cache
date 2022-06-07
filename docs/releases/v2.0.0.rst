@@ -1,0 +1,10 @@
+2.0.0 release notes
+===================
+
+* Includes everything from :doc:`1.1 <v1.1.0>` released in tandem.
+
+* Includes new SVG icon in settings panel. Previously this icon was either the
+  cog, or the lighthing bolt if ``wagtailfontawesome`` was installed.
+
+* Supports Wagtail 3 and only Wagtail 3. Wagtail 2 support will be maintained in
+  the 1.x series as needed.
