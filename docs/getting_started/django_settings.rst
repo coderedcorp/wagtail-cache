@@ -26,10 +26,13 @@ indicate a cache hit or miss. To turn off this header, set
 ``WAGTAIL_CACHE_HEADER = False``, or to customize the header set to a string.
 Note that other HTTP headers may also be added by the Django cache middleware.
 
+
+.. _WAGTAIL_CACHE_IGNORE_QS:
+
 WAGTAIL_CACHE_IGNORE_QS
 -----------------------
 
-.. versionadded:: 2.0
+.. versionadded:: 1.1
 
    This setting will ignore tracking/advertising URL parameters, and is ON by
    default. To restore the old behavior, set to ``None``.

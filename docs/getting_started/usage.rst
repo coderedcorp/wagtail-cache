@@ -47,6 +47,8 @@ publishing a page. To accomplish this, use a wagtail hook as so
             clear_cache()
 
 
+.. _purge_specific_urls:
+
 Purge specific URLs
 -------------------
 
