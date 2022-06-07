@@ -19,7 +19,7 @@ from django.utils.cache import (
     patch_response_headers,
 )
 from django.utils.deprecation import MiddlewareMixin
-from wagtail.core import hooks
+from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
 

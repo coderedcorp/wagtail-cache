@@ -5,8 +5,8 @@ from django.contrib.auth.models import User
 from django.core.cache import caches
 from wagtailcache.settings import wagtailcache_settings
 from wagtailcache.cache import CacheControl, Status, clear_cache
-from wagtail.core import hooks
-from wagtail.core.models import PageViewRestriction
+from wagtail import hooks
+from wagtail.models import PageViewRestriction
 
 from home.models import (
     CachedPage,
