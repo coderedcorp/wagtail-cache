@@ -172,6 +172,21 @@ class WagtailCacheTest(TestCase):
         )
         return response
 
+    def post_skip(self, url: str):
+        """
+        POSTS a page and tests that it was intentionally not served from
+        the cache.
+        """
+        response = self.client.post(url)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.SKIP.value
+        )
+        self.assertTrue(
+            CacheControl.NOCACHE.value in response.get("Cache-Control", "")
+            or CacheControl.PRIVATE.value in response.get("Cache-Control", "")
+        )
+        return response
+
     # ---- TEST PAGES ----------------------------------------------------------
 
     def test_page_miss(self):
@@ -191,6 +206,27 @@ class WagtailCacheTest(TestCase):
             self.get_skip(page.get_url())
             # Second get should continue to skip.
             self.get_skip(page.get_url())
+
+    def test_page_post(self):
+        # POSTs should never normally be cached, by default.
+        for page in self.should_cache_pages:
+            # First post should skip cache.
+            self.post_skip(page.get_url())
+            # Second post should skip cache.
+            self.post_skip(page.get_url())
+
+    def test_querystrings(self):
+        for page in self.should_cache_pages:
+            # First get should miss cache.
+            self.get_miss(page.get_url())
+            # Second get should hit cache.
+            self.get_hit(page.get_url())
+            # A get matching WAGTAIL_CACHE_IGNORE_QS should also hit the cache.
+            self.get_hit(page.get_url() + "?utm_code=0")
+            # A get with non-ignored querystrings should miss.
+            self.get_miss(page.get_url() + "?valid=0")
+            # A get with both should also hit, since it is the second request.
+            self.get_hit(page.get_url() + "?valid=0&utm_code=0")
 
     def test_page_restricted(self):
         auth_url = "/_util/authenticate_with_password/%d/%d/" % (
@@ -323,7 +359,7 @@ class WagtailCacheTest(TestCase):
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
-    # ---- PURGE SPECIFIC URLS & CLEAR ALL-------------------------------------------------
+    # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
 
     def test_cache_keyring(self):
         # Check if keyring is not present
@@ -414,20 +450,16 @@ class WagtailCacheTest(TestCase):
         hook_fns = hooks.get_hooks("is_request_cacheable")
         self.assertEqual(hook_fns, [hook_true])
 
-        # Setting `is_request_cacheale=True` does not really do much, because
+        # Setting `is_request_cachebale=True` does not really do much, because
         # the response still has the final say in whether or not the response is
-        # cached. The no-cache page will still not be cached due to the
-        # response. However a simple POST request will now be checked against
-        # the cache, although once again, it will probably not get cached due to
-        # the response.
+        # cached. However a simple POST request where the response does not
+        # forbid caching will in fact get cached!
         response = self.client.post(reverse("cached_view"))
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
         response = self.client.post(reverse("cached_view"))
-        self.assertEqual(
-            response.get(self.header_name, None), Status.MISS.value
-        )
+        self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
 
     def test_request_hook_false(self):
         # Register hook and assert it was actually registered.
