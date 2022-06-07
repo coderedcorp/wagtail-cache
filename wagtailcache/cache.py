@@ -57,7 +57,6 @@ def _chop_querystring(r: WSGIRequest) -> WSGIRequest:
     Given a request object, remove any of our ignored querystrings from it.
     """
     if len(r.GET) and wagtailcache_settings.WAGTAIL_CACHE_IGNORE_QS:
-        print(r.build_absolute_uri())
         # Make a copy of querystrings, and delete any that should be ignored.
         qs = r.GET.copy()
         for q in r.GET:
@@ -269,9 +268,7 @@ def clear_cache(urls: List[str] = None) -> None:
         matched_urls = []
         for regex in urls:
             for key in keyring:
-                print(f"comparing '{regex}' to '{key}'")
                 if re.match(regex, key):
-                    print("matched!")
                     matched_urls.append(key)
 
         # If it matches, delete each entry from the cache,
