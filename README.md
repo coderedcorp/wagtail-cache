@@ -48,3 +48,17 @@ Contributing
 ------------
 
 Follow the [contributing guide](https://docs.coderedcorp.com/wagtail-cache/stable/contributing.html)
+
+
+Attribution
+-----------
+
+Icon file "wagtailcache-bolt.svg":
+
+* Was sourced from the Fork Awesome project at
+   https://github.com/ForkAwesome/Fork-Awesome.
+
+* Is licensed under the Creative Commons Attribution 3.0 Unported license,
+   a copy of which is available at https://creativecommons.org/licenses/by/3.0/
+
+* Has been modified from the original sources.
