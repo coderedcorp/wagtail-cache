@@ -5,6 +5,7 @@ Built-in Django cache backends
 ------------------------------
 
 * **Memcached** (``django.core.cache.backends.memcached.MemcachedCache``) - untested, but should be working.
+* **Redis** (``django.core.cache.backends.redis.RedisCache``) (New in Django 4.0) - tested, working.
 * **Database** (``django.core.cache.backends.db.DatabaseCache``) - tested, working.
 * **Filesystem** (``django.core.cache.backends.filebased.FileBasedCache``) - tested, working.
 * **Local memory** (``django.core.cache.backends.locmem.LocMemCache``) - tested, working.
