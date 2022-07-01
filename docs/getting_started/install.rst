@@ -40,7 +40,7 @@ adding the Wagtail Cache middleware.
 2. Define a cache
 -----------------
 
-Next a cache must be configured in the settings. If you use django-redis, see :doc:`Supported Cache Backends </getting_started/supported_backends>`. Here is an example file cache,
+Next a cache must be configured in the settings. Here is an example file cache,
 which is suitable for use on any web server:
 
 .. code-block:: python

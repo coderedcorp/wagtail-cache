@@ -460,6 +460,12 @@ class WagtailCacheTest(TestCase):
         # Second get should continue to skip.
         self.get_skip(reverse("nocached_view"))
 
+    def test_template_response_view_hit(self):
+        # First get should miss cache.
+        self.get_miss(reverse("template_response_view"))
+        # Second get should hit cache.
+        self.get_hit(reverse("template_response_view"))
+
     # ---- ADMIN VIEWS ---------------------------------------------------------
 
     def test_admin(self):
