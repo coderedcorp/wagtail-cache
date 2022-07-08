@@ -11,6 +11,7 @@ class _DefaultSettings:
     WAGTAIL_CACHE = True
     WAGTAIL_CACHE_BACKEND = "default"
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
+    WAGTAIL_CACHE_IGNORE_COOKIES = True
     WAGTAIL_CACHE_IGNORE_QS = [
         r"^_bta_.*$",  # Bronto
         r"^_ga$",  # Google Analytics
@@ -34,7 +35,12 @@ class _DefaultSettings:
     ]
 
     def __getattribute__(self, attr: Text):
-        return getattr(settings, attr, super().__getattribute__(attr))
+        # First load from Django settings.
+        # If it does not exist, load from _DefaultSettings.
+        try:
+            return getattr(settings, attr)
+        except AttributeError:
+            return super().__getattribute__(attr)
 
 
 wagtailcache_settings = _DefaultSettings()
