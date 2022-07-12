@@ -31,11 +31,13 @@ indicate a cache hit or miss. To turn off this header, set
 WAGTAIL_CACHE_IGNORE_COOKIES
 ----------------------------
 
-.. versionadded:: 1.2, 2.1
+.. versionadded:: 1.2
 
-   This setting will strip cookies which do not contain CSRF or Django sessions,
-   even if the response sets a ``Vary: Cookie`` header, and is ON by default. To
-   restore the old behavior, set to ``False``.
+.. versionadded:: 2.1
+
+   Added in 1.2 and 2.1, this setting will strip cookies which do not contain
+   CSRF or Django sessions, even if the response sets a ``Vary: Cookie`` header,
+   and is ON by default. To restore the old behavior, set to ``False``.
 
 In the eternal war against their own users, trackers have started using
 first-party cookies, meaning trackers such as Google Analytics, Facebook,
@@ -46,7 +48,7 @@ to all requests. This combination effectively makes web pages impossible to
 cache. Marketers will demand cookie-intensive tracking, and Wagtail requires
 sessions, hence the need for some kind of workaround.
 
-This setting will effectively ignore non-Django cookies, and will strip the
+This setting will effectively strip all non-Django cookies, and will strip the
 ``Vary: Cookie`` header during the caching process.
 
 The result is that no matter how many client-side cookies are included in
@@ -62,6 +64,10 @@ However, the recommended solution is to keep this setting ON (the default), and
 add a ``{% csrf_token %}`` tag to pages in which you need to read or write
 custom cookies. Even better, refactor your code to use Django sessions instead
 of directly accessing cookies.
+
+Alternatively, you can use the ``is_request_cacheable`` hook to inspect the
+cookies and return a ``False`` if the request has a cookie you want to preserve.
+This will ensure the current request/response is not cached. See :doc:`hooks`.
 
 
 .. _WAGTAIL_CACHE_IGNORE_QS:
