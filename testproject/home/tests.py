@@ -1,12 +1,12 @@
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
 from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
-from django.contrib.auth.models import User
-from django.core.cache import caches
-from wagtailcache.settings import wagtailcache_settings
-from wagtailcache.cache import CacheControl, Status, clear_cache
 from wagtail.core import hooks
 from wagtail.core.models import PageViewRestriction
+from wagtailcache.cache import CacheControl, Status, clear_cache
+from wagtailcache.settings import wagtailcache_settings
 
 from home.models import (
     CachedPage,
@@ -307,23 +307,24 @@ class WagtailCacheTest(TestCase):
         # Third request should hit from the cache.
         self.get_hit(self.page_csrfpage.get_url())
 
+    @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=False)
     def test_client_tracking_cookies(self):
         # Normally, when a client sends a cookie, that is stored separately in
         # the cache due to presence of the ``Vary: Cookie`` header. This means
         # trackers that pollute the cookies effectively bust the cache. Under
         # normal behavior, these should in fact be cached separately.
-        for page in self.should_cache_pages:
-            # A get should miss cache.
-            self.get_miss(page.get_url())
-            # A get with different cookies should also miss the cache.
-            self.client.cookies["annoying_tracker"] = "we see all"
-            self.get_miss(page.get_url())
-            # A get with different cookies should also miss the cache.
-            self.client.cookies["_dataminer"] = "precious data"
-            self.get_miss(page.get_url())
+
+        # A get should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # A get with different cookies should also miss the cache.
+        self.client.cookies["annoying_tracker"] = "we see all"
+        self.get_miss(self.page_cachedpage.get_url())
+        # A get with different cookies should also miss the cache.
+        self.client.cookies["_dataminer"] = "precious data"
+        self.get_miss(self.page_cachedpage.get_url())
 
     @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=True)
-    def test_client_tracking_cookies(self):
+    def test_client_tracking_cookies_ignore(self):
         # Normally, when a client sends a cookie, that is stored separately in
         # the cache due to presence of the ``Vary: Cookie`` header. This means
         # trackers that pollute the cookies effectively bust the cache. Under
@@ -331,15 +332,15 @@ class WagtailCacheTest(TestCase):
 
         # With this setting ``True``, all cookies other than Django session and
         # CSRF token should be ignored and continue to hit the cache.
-        for page in self.should_cache_pages:
-            # A get should miss cache.
-            self.get_miss(page.get_url())
-            # A get with different cookies should also miss the cache.
-            self.client.cookies["annoying_tracker"] = "hooli"
-            self.get_hit(page.get_url())
-            # A get with different cookies should also miss the cache.
-            self.client.cookies["_dataminer"] = "precious data"
-            self.get_hit(page.get_url())
+
+        # A get should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # A get with different cookies should hit.
+        self.client.cookies["annoying_tracker"] = "we see all"
+        self.get_hit(self.page_cachedpage.get_url())
+        # A get with different cookies should also hit.
+        self.client.cookies["_dataminer"] = "precious data"
+        self.get_hit(self.page_cachedpage.get_url())
 
     def test_page_restricted(self):
         auth_url = "/_util/authenticate_with_password/%d/%d/" % (
