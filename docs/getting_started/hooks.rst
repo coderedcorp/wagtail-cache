@@ -57,7 +57,7 @@ For example:
     from wagtail.core import hooks
 
     @hooks.register("is_response_cacheable")
-    def nocache_secrets(request, curr_cache_decision):
+    def nocache_secrets(response, curr_cache_decision):
         # if the response contains a custom header, return False to
         # forcibly not cache. Otherwise, do not return to let wagtail-cache
         # decide how to cache.

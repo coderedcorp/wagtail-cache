@@ -40,3 +40,27 @@ class CallableCacheControlPage(WagtailCacheMixin, Page):
 
     def cache_control(self):
         return "private"
+
+
+class CookiePage(WagtailCacheMixin, Page):
+    """
+    Page that sets a random cookie, hence should not be served from cached
+    when a cookie-less request is given (unless WAGTAIL_CACHE_IGNORE_COOKIES is
+    set)
+    """
+
+    template = "home/page.html"
+
+    def serve(self, request):
+        response = super().serve(request)
+        response.set_cookie("c_is_for", "cookie")
+        return response
+
+
+class CsrfPage(WagtailCacheMixin, Page):
+    """
+    Page that sets a CSRF token (cookie), hence should never be served from
+    the cache when a cookie-less request is given.
+    """
+
+    template = "home/csrf_page.html"

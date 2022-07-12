@@ -4,6 +4,8 @@ target-version = ['py37', 'py38', 'py39', 'py310']
 # Regular expression of files to exclude.
 exclude = '''
 /(
-    migrations
+    \.venv
+    | build
+    | migrations
 )/
 '''
