@@ -77,13 +77,12 @@ def _chop_cookies(r: WSGIRequest) -> WSGIRequest:
     """
     If the request contains cookies which are not native to Django, remove them.
     """
-    if (
-        wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES
-        and r.COOKIES
-        and not (
-            settings.CSRF_COOKIE_NAME in r.COOKIES
-            or settings.SESSION_COOKIE_NAME in r.COOKIES
-        )
+    if not wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES:
+        return r
+
+    if r.COOKIES and not (
+        settings.CSRF_COOKIE_NAME in r.COOKIES
+        or settings.SESSION_COOKIE_NAME in r.COOKIES
     ):
         r.COOKIES = {}
     return r
@@ -98,11 +97,13 @@ def _chop_response_vary(r: WSGIRequest, s: HttpResponse) -> HttpResponse:
     the ``Vary: Cookie`` header unless the cookie contains a recognizable Django
     session or CSRF token.
     """
+    if not wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES:
+        return s
+
     if (
-        wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES
-        and not s.has_header("Set-Cookie")
+        not s.has_header("Set-Cookie")
         and s.has_header("Vary")
-        and s.headers["Vary"].lower() == "cookie"
+        and s["Vary"].lower() == "cookie"
         and not (
             settings.CSRF_COOKIE_NAME in s.cookies
             or settings.CSRF_COOKIE_NAME in r.COOKIES
@@ -110,7 +111,7 @@ def _chop_response_vary(r: WSGIRequest, s: HttpResponse) -> HttpResponse:
             or settings.SESSION_COOKIE_NAME in r.COOKIES
         )
     ):
-        del s.headers["Vary"]
+        del s["Vary"]
     return s
 
 
@@ -210,12 +211,18 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         if not wagtailcache_settings.WAGTAIL_CACHE:
             return response
 
-        if getattr(request, "_wagtailcache_skip", False):
+        if (
+            hasattr(request, "_wagtailcache_skip")
+            and request._wagtailcache_skip
+        ):
             # If we should skip this response, add header and return.
             _patch_header(response, Status.SKIP)
             return response
 
-        if not getattr(request, "_wagtailcache_update", False):
+        if (
+            hasattr(request, "_wagtailcache_update")
+            and not request._wagtailcache_update
+        ):
             # Add a response header to indicate this was a cache hit.
             _patch_header(response, Status.HIT)
             # Potentially remove the ``Vary: Cookie`` header.
@@ -228,21 +235,20 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         # Do cache 200, 301, 302, 304, and 404 codes so that wagtail doesn't
         #   have to repeatedly look up these URLs in the database.
         # Don't cache streaming responses.
+        # Don't cache responses that set a user-specific cookie in response
+        #   to a cookie-less request (e.g. CSRF tokens).
         is_cacheable = (
             CacheControl.NOCACHE.value not in response.get("Cache-Control", "")
             and CacheControl.PRIVATE.value
             not in response.get("Cache-Control", "")
             and response.status_code in (200, 301, 302, 304, 404)
             and not response.streaming
-        )
-        # Don't cache 200 responses that set a user-specific cookie in response
-        # to a cookie-less request (e.g. CSRF tokens).
-        if is_cacheable and response.status_code == 200:
-            is_cacheable = not (
+            and not (
                 not request.COOKIES
                 and response.cookies
                 and has_vary_header(response, "Cookie")
-            ) and not response.has_header("Set-Cookie")
+            )
+        )
 
         # Allow the user to override our caching decision.
         for fn in hooks.get_hooks("is_response_cacheable"):
