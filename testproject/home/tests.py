@@ -1,12 +1,12 @@
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.core.cache import caches
 from django.test import TestCase, override_settings, modify_settings
 from django.urls import reverse
+from django.contrib.auth.models import User
+from django.core.cache import caches
+from wagtailcache.settings import wagtailcache_settings
+from wagtailcache.cache import CacheControl, Status, clear_cache
 from wagtail.core import hooks
 from wagtail.core.models import PageViewRestriction
-from wagtailcache.cache import CacheControl, Status, clear_cache
-from wagtailcache.settings import wagtailcache_settings
 
 from home.models import (
     CachedPage,
