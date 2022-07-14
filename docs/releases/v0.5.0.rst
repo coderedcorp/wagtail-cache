@@ -1,9 +1,0 @@
-0.5.0 release notes
-===================
-
-* Added new middleware. This is now the recommended way of using Wagtail Cache. See :doc:`/getting_started/install`.
-* The middleware will additionally cache 404 and 301/302 responses, to lighten the load on your database.
-* The middleware will intelligently handle CSRF tokens and only cache those responses based on the cookie.
-  So the new middleware should completely eliminate any CSRF token issues while also being able to cache those pages.
-* The middleware now processes all cacheable requests/responses, not just wagtail pages. To revert to previous
-  behavior, continue using the decorator.

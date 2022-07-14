@@ -1,7 +1,0 @@
-0.4.0 release notes
-===================
-
-* Added new ``is_response_cacheable`` hook. See :doc:`/getting_started/hooks`.
-* Never cache responses with a ``Cache-Control`` header containing ``no-cache`` or ``private``.
-* New ``WagtailCacheMixin`` to support Page models with privacy or view restrictions. See :doc:`/getting_started/install`.
-* Documentation updates and clarification.

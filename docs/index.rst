@@ -37,4 +37,4 @@ Contents
 
    getting_started/index
    contributing
-   releases/index
+   releases
