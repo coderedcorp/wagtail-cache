@@ -16,6 +16,7 @@
 
 trigger:
   - main
+  - release/*
 
 
 stages:
