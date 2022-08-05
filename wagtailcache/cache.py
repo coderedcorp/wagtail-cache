@@ -65,21 +65,21 @@ def _delete_vary_cookie(response: HttpResponse) -> None:
     if not response.has_header("Vary"):
         return
     # Parse the value of Vary header.
-    vary_headers = cc_delim_re.split(response.headers["Vary"])
+    vary_headers = cc_delim_re.split(response["Vary"])
     # Build a lowercase-keyed dict to preserve the original case.
     vhdict = {}
     for item in vary_headers:
-        vhdict.update({item.lower(), item})
+        vhdict.update({item.lower(): item})
     # Delete "Cookie".
     if "cookie" in vhdict:
         del vhdict["cookie"]
         # Delete the header if it's now empty.
         if not vhdict:
-            del response.headers["Vary"]
+            del response["Vary"]
             return
         # Else patch the header.
         vary_headers = [vhdict[k] for k in vhdict]
-        response.headers["Vary"] = ", ".join(vary_headers)
+        response["Vary"] = ", ".join(vary_headers)
 
 
 def _chop_querystring(r: WSGIRequest) -> WSGIRequest:
