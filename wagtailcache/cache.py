@@ -13,6 +13,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
 from django.utils.cache import (
+    cc_delim_re,
     get_cache_key,
     get_max_age,
     has_vary_header,
@@ -45,12 +46,40 @@ class Status(Enum):
 
 
 def _patch_header(response: HttpResponse, status: Status) -> None:
+    """
+    Adds our Cache Control status to the response headers.
+    """
     # Patch cache-control with no-cache if it is not already set.
     if status == Status.SKIP and not response.get("Cache-Control", None):
         response["Cache-Control"] = CacheControl.NOCACHE.value
     # Add our custom header.
     if wagtailcache_settings.WAGTAIL_CACHE_HEADER:
         response[wagtailcache_settings.WAGTAIL_CACHE_HEADER] = status.value
+
+
+def _delete_vary_cookie(response: HttpResponse) -> None:
+    """
+    Deletes the ``Vary: Cookie`` header while keeping other items of the
+    Vary header in tact. Inspired by ``django.utils.cache.patch_vary_headers``.
+    """
+    if not response.has_header("Vary"):
+        return
+    # Parse the value of Vary header.
+    vary_headers = cc_delim_re.split(response["Vary"])
+    # Build a lowercase-keyed dict to preserve the original case.
+    vhdict = {}
+    for item in vary_headers:
+        vhdict.update({item.lower(): item})
+    # Delete "Cookie".
+    if "cookie" in vhdict:
+        del vhdict["cookie"]
+        # Delete the header if it's now empty.
+        if not vhdict:
+            del response["Vary"]
+            return
+        # Else patch the header.
+        vary_headers = [vhdict[k] for k in vhdict]
+        response["Vary"] = ", ".join(vary_headers)
 
 
 def _chop_querystring(r: WSGIRequest) -> WSGIRequest:
@@ -103,7 +132,7 @@ def _chop_response_vary(r: WSGIRequest, s: HttpResponse) -> HttpResponse:
     if (
         not s.has_header("Set-Cookie")
         and s.has_header("Vary")
-        and s["Vary"].lower() == "cookie"
+        and has_vary_header(s, "Cookie")
         and not (
             settings.CSRF_COOKIE_NAME in s.cookies
             or settings.CSRF_COOKIE_NAME in r.COOKIES
@@ -111,7 +140,7 @@ def _chop_response_vary(r: WSGIRequest, s: HttpResponse) -> HttpResponse:
             or settings.SESSION_COOKIE_NAME in r.COOKIES
         )
     ):
-        del s["Vary"]
+        _delete_vary_cookie(s)
     return s
 
 

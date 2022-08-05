@@ -12,8 +12,9 @@ urlpatterns = [
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
-    path("views/cached-view/", views.cached_view, name="cached_view"),
-    path("views/nocache-view/", views.nocached_view, name="nocached_view"),
+    path("views/cached/", views.cached_view, name="cached_view"),
+    path("views/nocache/", views.nocached_view, name="nocached_view"),
+    path("views/vary/", views.vary_view, name="vary_view"),
     # For anything not caught by a more specific rule above, hand over to
     # Wagtail's page serving mechanism. This should be the last pattern in
     # the list:

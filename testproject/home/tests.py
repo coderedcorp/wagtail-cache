@@ -342,6 +342,14 @@ class WagtailCacheTest(TestCase):
         self.client.cookies["_dataminer"] = "precious data"
         self.get_hit(self.page_cachedpage.get_url())
 
+    @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=True)
+    def test_vary_header_parse(self):
+        self.get_miss(reverse("vary_view"))
+        r = self.get_hit(reverse("vary_view"))
+        # Cookie should have been stripped from the Vary header while preserving
+        # case and order of the other items.
+        self.assertEqual(r["Vary"], "A, B, C")
+
     def test_page_restricted(self):
         auth_url = "/_util/authenticate_with_password/%d/%d/" % (
             self.view_restriction.id,

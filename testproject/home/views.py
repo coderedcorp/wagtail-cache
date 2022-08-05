@@ -10,3 +10,9 @@ def cached_view(request):
 @nocache_page
 def nocached_view(request):
     return HttpResponse("Hello, World!")
+
+
+def vary_view(request):
+    r = HttpResponse("Variety is the spice of life.")
+    r.headers["Vary"] = "A, B, Cookie, C"
+    return r
