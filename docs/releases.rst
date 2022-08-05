@@ -2,6 +2,17 @@
 Release Notes
 =============
 
+
+2.1.1
+=====
+
+* Fix Django deprecation warnings.
+
+* Previously, the feature to strip cookies was not triggered if the Vary header
+  contained something other than "Cookie", e.g. ``Vary: Language, Cookie``. This
+  change properly inspects and rebuilds the Vary header in such cases.
+
+
 2.1.0
 =====
 
@@ -22,6 +33,14 @@ Google Analytics, Facebook Pixel, HubSpot, etc.
 
 * Supports Wagtail 3 and only Wagtail 3. Wagtail 2 support will be maintained in
   the 1.x series as needed.
+
+
+1.2.1
+=====
+
+* Previously, the feature to strip cookies was not triggered if the Vary header
+  contained something other than "Cookie", e.g. ``Vary: Language, Cookie``. This
+  change properly inspects and rebuilds the Vary header in such cases.
 
 
 1.2.0
