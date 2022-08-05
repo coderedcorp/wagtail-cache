@@ -66,13 +66,18 @@ def _delete_vary_cookie(response: HttpResponse) -> None:
         return
     # Parse the value of Vary header.
     vary_headers = cc_delim_re.split(response.headers["Vary"])
+    # Build a lowercase-keyed dict to preserve the original case.
+    vhdict = {}
+    for item in vary_headers:
+        vhdict.update({item.lower(), item})
     # Delete "Cookie".
-    if "Cookie" in vary_headers:
-        vary_headers.remove("Cookie")
+    if "cookie" in vhdict:
+        del vhdict["cookie"]
         # Delete the header if it's empty.
-        if not vary_headers:
+        if not vhdict:
             del response.headers["Vary"]
         # Else patch the header.
+        vary_headers = [vhdict[k] for k in vhdict]
         response.headers["Vary"] = ", ".join(vary_headers)
 
 
