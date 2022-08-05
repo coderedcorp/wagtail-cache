@@ -73,9 +73,10 @@ def _delete_vary_cookie(response: HttpResponse) -> None:
     # Delete "Cookie".
     if "cookie" in vhdict:
         del vhdict["cookie"]
-        # Delete the header if it's empty.
+        # Delete the header if it's now empty.
         if not vhdict:
             del response.headers["Vary"]
+            return
         # Else patch the header.
         vary_headers = [vhdict[k] for k in vhdict]
         response.headers["Vary"] = ", ".join(vary_headers)
