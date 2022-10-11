@@ -16,7 +16,7 @@ setup(
     license="BSD license",
     include_package_data=True,
     packages=find_packages(),
-    install_requires=["wagtail>=3.0,<5.0", "django>=3.0,<4.1"],
+    install_requires=["wagtail>=3.0,<5.0"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
