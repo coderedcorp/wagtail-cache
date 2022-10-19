@@ -3,6 +3,12 @@ Release Notes
 =============
 
 
+2.2.0
+=====
+
+* Support Wagtail 4 and Django 4.1
+
+
 2.1.1
 =====
 
