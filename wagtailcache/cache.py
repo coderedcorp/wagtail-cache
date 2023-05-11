@@ -4,25 +4,20 @@ Functionality to set, serve from, and clear the cache.
 import re
 from enum import Enum
 from functools import wraps
-from typing import Callable, Optional, List
+from typing import Callable, List, Optional
 from urllib.parse import unquote
+
 from django.conf import settings
 from django.core.cache import caches
 from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import (
-    cc_delim_re,
-    get_cache_key,
-    get_max_age,
-    has_vary_header,
-    learn_cache_key,
-    patch_response_headers,
-)
+from django.utils.cache import (cc_delim_re, get_cache_key, get_max_age,
+                                has_vary_header, learn_cache_key,
+                                patch_response_headers)
 from django.utils.deprecation import MiddlewareMixin
 from wagtail import hooks
-
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -334,7 +329,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache(urls: List[str] = None) -> None:
+def clear_cache(urls: List[str] = []) -> None:
     """
     Clears the Wagtail cache backend.
 

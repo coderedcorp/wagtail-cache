@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 from wagtailcache import __version__
 
 with open("README.md", encoding="utf8") as readme_file:
@@ -16,7 +16,7 @@ setup(
     license="BSD license",
     include_package_data=True,
     packages=find_packages(),
-    install_requires=["wagtail>=3.0,<5.0"],
+    install_requires=["wagtail>=3.0,<5.1"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
