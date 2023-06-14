@@ -27,5 +27,7 @@ setup(
         "Framework :: Django",
         "Framework :: Wagtail",
         "Framework :: Wagtail :: 3",
+        "Framework :: Wagtail :: 4",
+        "Framework :: Wagtail :: 5",
     ],
 )

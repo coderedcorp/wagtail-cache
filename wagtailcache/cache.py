@@ -13,9 +13,14 @@ from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import (cc_delim_re, get_cache_key, get_max_age,
-                                has_vary_header, learn_cache_key,
-                                patch_response_headers)
+from django.utils.cache import (
+    cc_delim_re,
+    get_cache_key,
+    get_max_age,
+    has_vary_header,
+    learn_cache_key,
+    patch_response_headers,
+)
 from django.utils.deprecation import MiddlewareMixin
 from wagtail import hooks
 from wagtailcache.settings import wagtailcache_settings
@@ -421,7 +426,7 @@ class WagtailCacheMixin:
         """
         Add a cache-control header if the page requires a password.
         """
-        response = super().serve_password_required_response(
+        response = super().serve_password_required_response(  # type: ignore
             request, form, action_url
         )
         response["Cache-Control"] = CacheControl.PRIVATE.value
@@ -432,8 +437,8 @@ class WagtailCacheMixin:
         Add a custom cache-control header, or set to private if the page is
         being served behind a view restriction.
         """
-        response = super().serve(request, *args, **kwargs)
-        if self.get_view_restrictions():
+        response = super().serve(request, *args, **kwargs)  # type: ignore
+        if self.get_view_restrictions():  # type: ignore
             response["Cache-Control"] = CacheControl.PRIVATE.value
         elif hasattr(self, "cache_control"):
             if callable(self.cache_control):
