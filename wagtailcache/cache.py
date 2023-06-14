@@ -317,9 +317,11 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             self._wagcache.set("keyring", keyring)
 
             if isinstance(response, SimpleTemplateResponse):
-                response.add_post_render_callback(
-                    lambda r: self._wagcache.set(cache_key, r, timeout)
-                )
+
+                def callback(r):
+                    self._wagcache.set(cache_key, r, timeout)
+
+                response.add_post_render_callback(callback)
             else:
                 self._wagcache.set(cache_key, response, timeout)
 
