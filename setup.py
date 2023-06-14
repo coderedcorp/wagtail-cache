@@ -1,5 +1,8 @@
-from setuptools import find_packages, setup
+from setuptools import find_packages
+from setuptools import setup
+
 from wagtailcache import __version__
+
 
 with open("README.md", encoding="utf8") as readme_file:
     readme = readme_file.read()

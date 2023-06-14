@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
-from wagtailcache.cache import cache_page, nocache_page
+
+from wagtailcache.cache import cache_page
+from wagtailcache.cache import nocache_page
 
 
 @cache_page

@@ -1,21 +1,23 @@
-from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase, override_settings, modify_settings
-from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
-from wagtailcache.settings import wagtailcache_settings
-from wagtailcache.cache import CacheControl, Status, clear_cache
+from django.test import modify_settings
+from django.test import override_settings
+from django.test import TestCase
+from django.urls import reverse
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
 
-from home.models import (
-    CachedPage,
-    CacheControlPage,
-    CallableCacheControlPage,
-    CookiePage,
-    CsrfPage,
-    WagtailPage,
-)
+from home.models import CacheControlPage
+from home.models import CachedPage
+from home.models import CallableCacheControlPage
+from home.models import CookiePage
+from home.models import CsrfPage
+from home.models import WagtailPage
+from wagtailcache.cache import CacheControl
+from wagtailcache.cache import clear_cache
+from wagtailcache.cache import Status
+from wagtailcache.settings import wagtailcache_settings
 
 
 def hook_true(obj, is_cacheable: bool) -> bool:
@@ -87,14 +89,12 @@ class WagtailCacheTest(TestCase):
         )
         cls.page_wagtailpage.add_child(instance=cls.page_cookiepage)
         cls.page_wagtailpage.add_child(instance=cls.page_csrfpage)
-
         # Create the view restriction.
         cls.view_restriction = PageViewRestriction.objects.create(
             page=cls.page_cachedpage_restricted,
             restriction_type=PageViewRestriction.PASSWORD,
             password="the cybers",
         )
-
         # List of pages to test.
         cls.should_cache_pages = [
             cls.page_wagtailpage,
@@ -134,7 +134,6 @@ class WagtailCacheTest(TestCase):
             pass
 
     # --- UTILITIES ------------------------------------------------------------
-
     def head_hit(self, url: str):
         """
         HEAD a page and test that it was served from the cache.
@@ -215,7 +214,6 @@ class WagtailCacheTest(TestCase):
         return response
 
     # ---- TEST PAGES ----------------------------------------------------------
-
     def test_page_miss(self):
         for page in self.should_cache_pages:
             self.head_miss(page.get_url())
@@ -279,7 +277,6 @@ class WagtailCacheTest(TestCase):
         # With the setting turned on, it will strip all cookies (other than CSRF
         # or session id). Therefore, each response is going to SKIP due to
         # setting a cooking in response to a cookie-less request.
-
         # First request should skip, since the cookie is not yet set.
         self.get_skip(self.page_cookiepage.get_url())
         # Second request should continue to skip.
@@ -298,7 +295,6 @@ class WagtailCacheTest(TestCase):
     @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=True)
     def test_csrf_page_ignore(self):
         # This should behave exactly the same with or without the setting.
-
         # First request should skip, since the CSRF token is being set.
         self.get_skip(self.page_csrfpage.get_url())
         # Second request should also miss, since this request now contains a
@@ -313,7 +309,6 @@ class WagtailCacheTest(TestCase):
         # the cache due to presence of the ``Vary: Cookie`` header. This means
         # trackers that pollute the cookies effectively bust the cache. Under
         # normal behavior, these should in fact be cached separately.
-
         # A get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
         # A get with different cookies should also miss the cache.
@@ -329,10 +324,8 @@ class WagtailCacheTest(TestCase):
         # the cache due to presence of the ``Vary: Cookie`` header. This means
         # trackers that pollute the cookies effectively bust the cache. Under
         # normal behavior, these should in fact be cached separately.
-
         # With this setting ``True``, all cookies other than Django session and
         # CSRF token should be ignored and continue to hit the cache.
-
         # A get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
         # A get with different cookies should hit.
@@ -425,7 +418,6 @@ class WagtailCacheTest(TestCase):
 
     # ---- TEST VIEWS ----------------------------------------------------------
     # Views use the decorators and should work without the middleware.
-
     @modify_settings(
         MIDDLEWARE={
             "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
@@ -467,7 +459,6 @@ class WagtailCacheTest(TestCase):
         self.get_hit(reverse("template_response_view"))
 
     # ---- ADMIN VIEWS ---------------------------------------------------------
-
     def test_admin(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse("wagtailcache:index"))
@@ -488,7 +479,6 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
 
     # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
-
     def test_cache_keyring(self):
         # Check if keyring is not present
         self.assertEqual(self.cache.get("keyring"), None)
@@ -505,38 +495,31 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
         # Second get should hit cache.
         self.get_hit(self.page_cachedpage.get_url())
-
         # clear all from Cache
         clear_cache()
-
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
     def test_clear_cache_url(self):
         u1 = self.page_cachedpage.get_url()
         u2 = self.page_cachedpage.get_url() + "?action=pytest"
-
         # First get should miss cache.
         self.get_miss(u1)
         self.get_miss(u2)
-
         # Second get should hit cache.
         self.get_hit(u1)
         self.get_hit(u2)
-
         # Clear only the second URL, using a regex.
         clear_cache(
             [
                 r".*" + u1 + r"[\?\&]action=",
             ]
         )
-
         # url1 should still hit, but url2 should miss.
         self.get_hit(u1)
         self.get_miss(u2)
 
     # ---- ALTERNATE SETTINGS --------------------------------------------------
-
     @override_settings(WAGTAIL_CACHE=True)
     def test_enable_wagtailcache(self):
         # Intentionally enable wagtail-cache, make sure it works.
@@ -561,7 +544,6 @@ class WagtailCacheTest(TestCase):
         self.test_admin()
 
     # ---- HOOKS ---------------------------------------------------------------
-
     def test_request_hook_true(self):
         # A POST should never be cached.
         response = self.client.post(reverse("cached_view"))
@@ -572,12 +554,10 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
-
         # Register hook and assert it was actually registered.
         hooks.register("is_request_cacheable", hook_true)
         hook_fns = hooks.get_hooks("is_request_cacheable")
         self.assertEqual(hook_fns, [hook_true])
-
         # Setting `is_request_cachebale=True` does not really do much, because
         # the response still has the final say in whether or not the response is
         # cached. However a simple POST request where the response does not
