@@ -27,7 +27,7 @@ For example:
 
 .. code-block:: python
 
-    from wagtail.core import hooks
+    from wagtail import hooks
 
     @hooks.register("is_request_cacheable")
     def nocache_in_query(request, curr_cache_decision):
@@ -54,7 +54,7 @@ For example:
 
 .. code-block:: python
 
-    from wagtail.core import hooks
+    from wagtail import hooks
 
     @hooks.register("is_response_cacheable")
     def nocache_secrets(response, curr_cache_decision):
