@@ -3,6 +3,11 @@ Release Notes
 =============
 
 
+Unreleased
+=====
+
+* Support Wagtail 5, Django 4.2 and Python 3.11
+
 2.2.0
 =====
 
