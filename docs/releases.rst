@@ -8,6 +8,8 @@ Unreleased
 
 * Support Wagtail 5, Django 4.2 and Python 3.11
 
+* Remove support for Python 3.7
+
 2.2.0
 =====
 
@@ -114,7 +116,7 @@ Maintenance
 .. note::
 
     Wagtail Cache may not work correctly with
-    ``wagtail.core.middleware.SiteMiddleware`` or
+    ``wagtail.middleware.SiteMiddleware`` or
     ``wagtail.contrib.legacy.sitemiddleware.SiteMiddleware`` on Wagtail 2.9 and
     newer. `Follow these instructions to replace SiteMiddleware
     <https://docs.wagtail.io/en/stable/releases/2.9.html#sitemiddleware-and-request-site-deprecated>`_.
