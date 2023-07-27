@@ -1,7 +1,8 @@
 """
 Views for the wagtail admin dashboard.
 """
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
 from django.core.cache import caches
 from django.http import HttpResponseRedirect

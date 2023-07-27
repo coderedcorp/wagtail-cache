@@ -40,7 +40,7 @@ adding the Wagtail Cache middleware.
 2. Define a cache
 -----------------
 
-Next a cache must be configured in the settings. If you use django-redis, see :doc:`Supported Cache Backends </getting_started/supported_backends>`. Here is an example file cache,
+Next a cache must be configured in the settings. Here is an example file cache,
 which is suitable for use on any web server:
 
 .. code-block:: python
@@ -200,11 +200,11 @@ To this:
     from django.conf.urls import url
 
     from django.contrib.auth import views as auth_views
-    from wagtail.core.urls import serve_pattern, WAGTAIL_FRONTEND_LOGIN_TEMPLATE
-    from wagtail.core import views as wagtail_views
+    from wagtail.urls import serve_pattern, WAGTAIL_FRONTEND_LOGIN_TEMPLATE
+    from wagtail import views as wagtail_views
     from wagtailcache.cache import cache_page
 
-    # Copied from wagtail.core.urls:
+    # Copied from wagtail.urls:
     url(r'^_util/authenticate_with_password/(\d+)/(\d+)/$', wagtail_views.authenticate_with_password,
         name='wagtailcore_authenticate_with_password'),
     url(r'^_util/login/$', auth_views.LoginView.as_view(template_name=WAGTAIL_FRONTEND_LOGIN_TEMPLATE),

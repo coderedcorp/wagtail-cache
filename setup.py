@@ -1,5 +1,8 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
+
 from wagtailcache import __version__
+
 
 with open("README.md", encoding="utf8") as readme_file:
     readme = readme_file.read()
@@ -16,7 +19,7 @@ setup(
     license="BSD license",
     include_package_data=True,
     packages=find_packages(),
-    install_requires=["wagtail>=3.0,<5.0"],
+    install_requires=["wagtail>=3.0,<6"],
     classifiers=[
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
@@ -27,5 +30,7 @@ setup(
         "Framework :: Django",
         "Framework :: Wagtail",
         "Framework :: Wagtail :: 3",
+        "Framework :: Wagtail :: 4",
+        "Framework :: Wagtail :: 5",
     ],
 )

@@ -1,11 +1,12 @@
 """
 Registers wagtail-cache in the wagtail admin dashboard.
 """
-
-from django.urls import include, path, reverse
+from django.urls import include
+from django.urls import path
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from wagtail.admin.menu import MenuItem
 from wagtail import hooks
+from wagtail.admin.menu import MenuItem
 
 from wagtailcache import urls
 

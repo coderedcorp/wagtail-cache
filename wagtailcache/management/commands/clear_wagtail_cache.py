@@ -1,6 +1,6 @@
 """CLI tool to clear wagtailcache."""
-
 from django.core.management.base import BaseCommand
+
 from wagtailcache.cache import clear_cache
 
 

@@ -1,13 +1,12 @@
 """
 Default django settings for wagtail-cache.
 """
-
 from typing import Text
+
 from django.conf import settings
 
 
 class _DefaultSettings:
-
     WAGTAIL_CACHE = True
     WAGTAIL_CACHE_BACKEND = "default"
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"

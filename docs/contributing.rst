@@ -29,10 +29,12 @@ development tools:
 
 Write some code.
 
-Next, run the static analysis tools (``flake8`` and ``mypy``)
+Next, run the formatters and static analysis tools:
 
 .. code-block:: console
 
+    $ isort .
+    $ black .
     $ flake8 ./wagtailcache/
     $ mypy ./wagtailcache/
 

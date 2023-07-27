@@ -1,5 +1,8 @@
 from django.http import HttpResponse
-from wagtailcache.cache import cache_page, nocache_page
+from django.template.response import TemplateResponse
+
+from wagtailcache.cache import cache_page
+from wagtailcache.cache import nocache_page
 
 
 @cache_page
@@ -16,3 +19,9 @@ def vary_view(request):
     r = HttpResponse("Variety is the spice of life.")
     r.headers["Vary"] = "A, B, Cookie, C"
     return r
+
+
+@cache_page
+def template_response_view(request):
+    response = TemplateResponse(request, "home/page.html", {})
+    return response
