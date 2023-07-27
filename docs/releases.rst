@@ -3,10 +3,18 @@ Release Notes
 =============
 
 
+2.3.0
+=====
+
+* Support Wagtail 5 and Django 4.2.
+
+* Remove ``django-redis`` compatibility backend. Django 4.0+ has a native redis backend.
+
+
 2.2.0
 =====
 
-* Support Wagtail 4 and Django 4.1
+* Support Wagtail 4 and Django 4.1.
 
 
 2.1.1
