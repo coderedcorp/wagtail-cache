@@ -4,7 +4,7 @@ Release Notes
 
 
 Unreleased
-=====
+==========
 
 * Drop support for Wagtail 3. (Active support ended on August 31, 2022, Security support ended on November 01, 2022: https://endoflife.date/wagtail)
 
