@@ -14,6 +14,7 @@ class _DefaultSettings:
     WAGTAIL_CACHE_IGNORE_QS = [
         r"^_bta_.*$",  # Bronto
         r"^_ga$",  # Google Analytics
+        r"^_gl$",  # Google Analytics
         r"^affiliate$",  # Instagram affiliates
         r"^ck_subscriber_id$",  # Instagram affiliates
         r"^dm_i$",  # Dotdigital
