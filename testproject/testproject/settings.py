@@ -99,8 +99,6 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATIC_URL = "/static/"
 
@@ -108,9 +106,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 # Wagtail settings
 WAGTAIL_SITE_NAME = "testproject"
-# Base URL to use when referring to full URLs within the Wagtail admin backend -
-# e.g. in notification emails. Don't include '/admin' or a trailing slash
-BASE_URL = "http://example.com"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -128,5 +123,13 @@ CACHES = {
     "zero": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "TIMEOUT": 0,
+    },
+    "error_get": {
+        "BACKEND": "backends.ErroneousGetCache",
+        "TIMEOUT": 90061,  # 1 day, 1 hour, 1 minute, 1 second.
+    },
+    "error_set": {
+        "BACKEND": "backends.ErroneousSetCache",
+        "TIMEOUT": 90061,  # 1 day, 1 hour, 1 minute, 1 second.
     },
 }
