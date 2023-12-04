@@ -134,6 +134,7 @@ class WagtailCacheTest(TestCase):
             pass
 
     # --- UTILITIES ------------------------------------------------------------
+
     def head_hit(self, url: str):
         """
         HEAD a page and test that it was served from the cache.
@@ -198,6 +199,28 @@ class WagtailCacheTest(TestCase):
         )
         return response
 
+    def get_error(self, url: str):
+        """
+        Gets a page and tests that an error in the cache backend was handled.
+        """
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.ERROR.value
+        )
+        return response
+
+    def head_error(self, url: str):
+        """
+        HEAD a page and tests that an error in the cache backend was handled.
+        """
+        response = self.client.head(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.ERROR.value
+        )
+        return response
+
     def post_skip(self, url: str):
         """
         POSTS a page and tests that it was intentionally not served from
@@ -214,6 +237,7 @@ class WagtailCacheTest(TestCase):
         return response
 
     # ---- TEST PAGES ----------------------------------------------------------
+
     def test_page_miss(self):
         for page in self.should_cache_pages:
             self.head_miss(page.get_url())
@@ -417,6 +441,7 @@ class WagtailCacheTest(TestCase):
         self.test_page_404()
 
     # ---- TEST VIEWS ----------------------------------------------------------
+
     # Views use the decorators and should work without the middleware.
     @modify_settings(
         MIDDLEWARE={
@@ -459,6 +484,7 @@ class WagtailCacheTest(TestCase):
         self.get_hit(reverse("template_response_view"))
 
     # ---- ADMIN VIEWS ---------------------------------------------------------
+
     def test_admin(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse("wagtailcache:index"))
@@ -479,6 +505,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
 
     # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
+
     def test_cache_keyring(self):
         # Check if keyring is not present
         self.assertEqual(self.cache.get("keyring"), None)
@@ -520,6 +547,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(u2)
 
     # ---- ALTERNATE SETTINGS --------------------------------------------------
+
     @override_settings(WAGTAIL_CACHE=True)
     def test_enable_wagtailcache(self):
         # Intentionally enable wagtail-cache, make sure it works.
@@ -543,7 +571,30 @@ class WagtailCacheTest(TestCase):
         # Load admin panel to render the zero timeout.
         self.test_admin()
 
+    @override_settings(WAGTAIL_CACHE_BACKEND="error_get")
+    def test_page_error_get(self):
+        # Wagtail-cache should handle errors when fetching from cache backend.
+        for page in self.should_cache_pages:
+            # First get should get an error.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+            # Second get should get an error too.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+
+    @override_settings(WAGTAIL_CACHE_BACKEND="error_set")
+    def test_page_error_set(self):
+        # Wagtail-cache should handle errors when updating to cache backend.
+        for page in self.should_cache_pages:
+            # First get should get an error.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+            # Second get should get an error too.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+
     # ---- HOOKS ---------------------------------------------------------------
+
     def test_request_hook_true(self):
         # A POST should never be cached.
         response = self.client.post(reverse("cached_view"))
