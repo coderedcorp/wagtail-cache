@@ -125,6 +125,10 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "TIMEOUT": 90061,  # 1 day, 1 hour, 1 minute, 1 second.
     },
+    "one_second": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "TIMEOUT": 1,
+    },
     "zero": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "TIMEOUT": 0,

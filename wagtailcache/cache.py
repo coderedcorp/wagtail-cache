@@ -307,9 +307,10 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             # Get current cache keys belonging to this URI.
             # This should be a list of keys.
             uri_keys: List[str] = keyring.get(uri, [])
-            # Append the key to this list and save.
-            uri_keys.append(cache_key)
-            keyring[uri] = uri_keys
+            # Append the key to this list if not already present and save.
+            if cache_key not in uri_keys:
+                uri_keys.append(cache_key)
+                keyring[uri] = uri_keys
             self._wagcache.set("keyring", keyring)
 
             if isinstance(response, SimpleTemplateResponse):
