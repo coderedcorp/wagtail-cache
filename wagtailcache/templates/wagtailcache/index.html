@@ -41,12 +41,13 @@
     {% trans "Note that 301/302 redirects and 404s may also be cached." %}
   </p>
   <ul class="wagcache-pagelist">
-    {% for url, entries in keyring.items %}
+    {% regroup keyring by url as keyring_list %}
+    {% for url in keyring_list %}
     <li>
-      {{ url }}
+      {{ url.grouper }}
       <ul>
-        {% for entry in entries %}
-        <li>{{ entry }}</li>
+        {% for entry in url.list %}
+        <li>{{ entry.key }}</li>
         {% endfor %}
       </ul>
     </li>

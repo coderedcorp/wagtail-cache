@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from django.contrib.auth.models import User
@@ -7,6 +8,7 @@ from django.test import TestCase
 from django.test import modify_settings
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.timezone import now
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
 
@@ -19,6 +21,8 @@ from home.models import WagtailPage
 from wagtailcache.cache import CacheControl
 from wagtailcache.cache import Status
 from wagtailcache.cache import clear_cache
+from wagtailcache.cache import Status
+from wagtailcache.models import KeyringItem
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -510,14 +514,32 @@ class WagtailCacheTest(TestCase):
 
     def test_cache_keyring(self):
         # Check if keyring is not present
-        self.assertEqual(self.cache.get("keyring"), None)
+        self.assertEqual(KeyringItem.objects.count(), 0)
         # Get should hit cache.
         self.get_miss(self.page_cachedpage.get_url())
+        self.assertEqual(KeyringItem.objects.count(), 1)
         # Get first key from keyring
-        key = next(iter(self.cache.get("keyring")))
         url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        keyring_item = KeyringItem.objects.active_for_urls(url).first()
         # Compare Keys
-        self.assertEqual(key, url)
+        self.assertEqual(keyring_item.url, url)
+
+    @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
+    def test_cache_keyring_no_uri_key_duplication(self):
+        # First get to populate keyring
+        self.get_miss(self.page_cachedpage.get_url())
+        # Wait a short time
+        time.sleep(0.5)
+        # Fetch a different page
+        self.get_miss(self.page_wagtailpage.get_url())
+        # Wait until the first page is expired, but not the keyring
+        time.sleep(0.6)
+        # Fetch the first page again
+        self.get_miss(self.page_cachedpage.get_url())
+        # Check the keyring does not contain duplicate uri_keys
+        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        keyring = self.cache.get("keyring")
+        self.assertEqual(len(keyring.get(url, [])), 1)
 
     @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
     def test_cache_keyring_no_uri_key_duplication(self):
@@ -684,3 +706,100 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(hook_fns, [hook_any])
         # The page should be cached normally due to hook returning garbage.
         self.test_page_hit()
+
+    # ---- MODELS --------------------------------------------------------------
+    def test_keyring_update_or_create(self):
+        expiry = now() + datetime.timedelta(hours=1)
+        key = "abc123"
+        url = "https://example.com/"
+
+        KeyringItem.objects.set(
+            expiry=expiry,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().url, url)
+
+        expiry2 = now() + datetime.timedelta(hours=1)
+        KeyringItem.objects.set(
+            expiry=expiry2,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().expiry, expiry2)
+
+    def test_delete_expired(self):
+        """
+        Cache items expire by themselves, so we only need to actively
+        delete database items
+        """
+        expiry1 = now() + datetime.timedelta(seconds=1)
+        expiry2 = now() + datetime.timedelta(seconds=2)
+        used_keys = []
+
+        for exp in [expiry1, expiry2]:
+            key = f"key-{exp}"
+            url = f"https://example.com/{exp}"
+            KeyringItem.objects.set(
+                expiry=exp,
+                key=key,
+                url=url,
+            )
+            # Item should not expire
+            self.cache.set(key, url, 100)
+            used_keys.append(key)
+        self.assertEqual(KeyringItem.objects.count(), 2)
+        time.sleep(1)
+        KeyringItem.objects.clear_expired()
+        self.assertEqual(KeyringItem.objects.count(), 1)
+
+        # Cache items remain
+        for key in used_keys:
+            self.assertTrue(self.cache.get(key))
+
+    @override_settings(WAGTAIL_CACHE_BATCH_SIZE=2)
+    def test_bulk_delete(self):
+        """
+        Bulk delete removes cache items and database items that refer to them
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
+    def test_active_for_urls(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.active_for_urls(url).count(), 1)

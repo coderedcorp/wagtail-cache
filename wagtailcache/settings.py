@@ -10,6 +10,7 @@ from django.conf import settings
 class _DefaultSettings:
     WAGTAIL_CACHE = True
     WAGTAIL_CACHE_BACKEND = "default"
+    WAGTAIL_CACHE_BATCH_SIZE = 100
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
     WAGTAIL_CACHE_IGNORE_COOKIES = True
     WAGTAIL_CACHE_IGNORE_QS = [

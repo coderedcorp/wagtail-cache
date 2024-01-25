@@ -3,6 +3,7 @@ Functionality to set, serve from, and clear the cache.
 """
 
 import logging
+import datetime
 import re
 from enum import Enum
 from functools import wraps
@@ -24,8 +25,10 @@ from django.utils.cache import has_vary_header
 from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_response_headers
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.timezone import now
 from wagtail import hooks
 
+from wagtailcache.models import KeyringItem
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -378,25 +381,15 @@ def clear_cache(urls: List[str] = []) -> None:
         return
 
     _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-    if urls and "keyring" in _wagcache:
-        keyring = _wagcache.get("keyring")
-        # Check the provided URL matches a key in our keyring.
-        matched_urls = []
-        for regex in urls:
-            for key in keyring:
-                if re.match(regex, key):
-                    matched_urls.append(key)
-        # If it matches, delete each entry from the cache,
-        # and delete the URL from the keyring.
-        for url in matched_urls:
-            entries = keyring.get(url, [])
-            for cache_key in entries:
-                _wagcache.delete(cache_key)
-            del keyring[url]
-        # Save the keyring.
-        _wagcache.set("keyring", keyring)
+    if urls:
+        active_keys = KeyringItem.objects.active_for_urls(urls).values_list(
+            "key", flat=True
+        )
+        # Delete the keys from the cache and the keyring
+        KeyringItem.objects.bulk_delete_cache_keys(active_keys)
     # Clears the entire cache backend used by wagtail-cache.
     else:
+        KeyringItem.objects.all().delete()
         _wagcache.clear()
 
 
