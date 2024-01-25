@@ -47,7 +47,7 @@ class KeyringItemManager(models.Manager):
     def active(self):
         return self.filter(expiry__gt=now())
 
-    def active_for_urls(self, urls):
+    def active_for_url_regexes(self, urls):
         if urls is None:
             urls = []
         if not isinstance(urls, (list, tuple)):

@@ -382,9 +382,9 @@ def clear_cache(urls: List[str] = []) -> None:
 
     _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
     if urls:
-        active_keys = KeyringItem.objects.active_for_urls(urls).values_list(
-            "key", flat=True
-        )
+        active_keys = KeyringItem.objects.active_for_url_regexes(
+            urls
+        ).values_list("key", flat=True)
         # Delete the keys from the cache and the keyring
         KeyringItem.objects.bulk_delete_cache_keys(active_keys)
     # Clears the entire cache backend used by wagtail-cache.
