@@ -740,8 +740,9 @@ class WagtailCacheTest(TestCase):
         used_keys = []
 
         for exp in [expiry1, expiry2]:
-            key = f"key-{exp}"
-            url = f"https://example.com/{exp}"
+            exp_iso = exp.isoformat()
+            key = f"key-{exp_iso}"
+            url = f"https://example.com/{exp_iso}"
             KeyringItem.objects.set(
                 expiry=exp,
                 key=key,
