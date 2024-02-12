@@ -55,10 +55,10 @@ class KeyringItemManager(models.Manager):
         qs = self.active()
         if not urls:
             return qs
-        filter_set = Q(url__regex=urls[0])
-        for url in urls[1:]:
-            filter_set = filter_set | Q(url__regex=url)
-        return qs.filter(filter_set)
+        q_objects = Q()
+        for url in urls:
+            q_objects.add(Q(url__regex=url), Q.OR)
+        return qs.filter(q_objects)
 
 
 class KeyringItem(models.Model):
