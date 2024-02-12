@@ -803,6 +803,11 @@ class WagtailCacheTest(TestCase):
             key="key-2",
             url=url,
         )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=f"{url}/key-3/",
+        )
         self.assertEqual(
-            KeyringItem.objects.active_for_url_regexes(url).count(), 1
+            KeyringItem.objects.active_for_url_regexes(url).count(), 2
         )
