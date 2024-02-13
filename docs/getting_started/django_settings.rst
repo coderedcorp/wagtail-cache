@@ -100,3 +100,23 @@ own unique page in the cache, set this value to ``None`` or ``[]``.
 If you feel as though the spammers have won, and want the nuclear option, you
 can set this to ``[r".*"]`` which will ignore all querystrings. This is surely
 a terrible idea, but it can be done.
+
+
+.. _WAGTAIL_CACHE_USE_RAW_DELETE:
+
+WAGTAIL_CACHE_USE_RAW_DELETE
+----------------------------
+
+.. versionadded:: 2.3.0
+
+   This setting will use Django's ``QuerySet._raw_delete`` method to clear
+   KeyringItems from the database. This is fast but means that signals are not
+   sent during that process. This is OFF by default.
+
+If your cache is large, then there can be many ``KeyringItem`` objects in the
+database. When you publish a Wagtail page that is high in the tree, many
+of those items may be deleted.
+
+If the delete process is too slow, then you can change this setting to use
+Django's ``QuerySet._raw_delete`` method. That runs significantly faster than
+``QuerySet.delete`` but it means that signals are not sent during that process.
