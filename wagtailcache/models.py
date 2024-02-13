@@ -49,11 +49,11 @@ class KeyringItemManager(models.Manager):
     def active(self):
         return self.filter(expiry__gt=now())
 
-    def active_for_url_regexes(self, urls):
+    def active_for_url_regexes(self, urls=None):
         if urls is None:
             urls = []
         if not isinstance(urls, (list, tuple)):
-            urls = list(urls)
+            urls = [urls]
         qs = self.active()
         if not urls:
             return qs

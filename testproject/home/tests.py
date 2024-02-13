@@ -24,6 +24,7 @@ from wagtailcache.cache import clear_cache
 from wagtailcache.cache import Status
 from wagtailcache.models import KeyringItem
 from wagtailcache.settings import wagtailcache_settings
+from wagtailcache.utils import batched
 
 
 def hook_true(obj, is_cacheable: bool) -> bool:
@@ -811,3 +812,52 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(
             KeyringItem.objects.active_for_url_regexes(url).count(), 2
         )
+
+    def test_active_for_urls_no_regexes(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+        url2 = "https://test.example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=url2,
+        )
+        self.assertEqual(
+            KeyringItem.objects.active_for_url_regexes().count(), 2
+        )
+
+    def test_keyringitem_str(self):
+        future_expiry = datetime.datetime(year=2030, month=1, day=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        self.assertEqual(
+            str(KeyringItem.objects.first()),
+            "https://example.com -> key-2 (Expires: 2030-01-01 00:00:00+00:00)",
+        )
+
+    def test_batched(self):
+        self.assertEqual(
+            [batch for batch in batched("ABCDEFG", 3)],
+            [("A", "B", "C"), ("D", "E", "F"), ("G",)],
+        )
+
+    def test_batched_invalid_batch_size(self):
+        with self.assertRaises(ValueError):
+            next(batched("ABCDEFG", 0))
