@@ -14,7 +14,7 @@ class KeyringItemManager(models.Manager):
         super().__init__()
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
 
-    def set(self, url, key, expiry) -> models.Model:
+    def set(self, url, key, expiry) -> "KeyringItem":
         """
         Create or update a keyring item, clearing expired items too.
         """
