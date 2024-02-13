@@ -789,6 +789,35 @@ class WagtailCacheTest(TestCase):
             self.assertTrue(KeyringItem.objects.filter(key=key).exists())
             self.assertTrue(self.cache.get(key))
 
+    @override_settings(WAGTAIL_CACHE_USE_RAW_DELETE=True)
+    def test_bulk_delete_raw_delete(self):
+        """
+        You can optionally use Django's `_raw_delete`
+        for speed with many cache keys.
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
     def test_active_for_url_regexes(self):
         past_expiry = now() - datetime.timedelta(seconds=1)
         future_expiry = now() + datetime.timedelta(seconds=1)

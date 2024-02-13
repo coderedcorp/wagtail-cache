@@ -37,8 +37,12 @@ class KeyringItemManager(models.Manager):
             wagtailcache_settings.WAGTAIL_CACHE_BATCH_SIZE,
         ):
             self._wagcache.delete_many(key_batch)
-        # Delete from database
-        existing_keys.delete()
+        # Delete from database, optionally use `_raw_delete`
+        # for speed with many cache keys.
+        if wagtailcache_settings.WAGTAIL_CACHE_USE_RAW_DELETE:
+            existing_keys._raw_delete(using=self.db)
+        else:
+            existing_keys.delete()
 
     def clear_expired(self) -> None:
         """
