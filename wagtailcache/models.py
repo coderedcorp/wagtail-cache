@@ -1,3 +1,5 @@
+from typing import List
+
 from django.core.cache import caches
 from django.db import models
 from django.db.models import Q
@@ -24,7 +26,7 @@ class KeyringItemManager(models.Manager):
         self.clear_expired()
         return item
 
-    def bulk_delete_cache_keys(self, keys: list[str]) -> None:
+    def bulk_delete_cache_keys(self, keys: List[str]) -> None:
         """
         Bulk delete the keys that exist, in batches
         """
