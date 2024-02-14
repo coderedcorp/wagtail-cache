@@ -101,8 +101,12 @@ STATICFILES_FINDERS = [
 ]
 
 STORAGES = {
-    "default": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
-    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}
+    "default": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
