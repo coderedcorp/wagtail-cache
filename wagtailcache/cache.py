@@ -1,6 +1,7 @@
 """
 Functionality to set, serve from, and clear the cache.
 """
+
 import re
 from enum import Enum
 from functools import wraps
