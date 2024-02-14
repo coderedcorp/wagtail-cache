@@ -1,6 +1,7 @@
 """
 Default django settings for wagtail-cache.
 """
+
 from typing import Text
 
 from django.conf import settings

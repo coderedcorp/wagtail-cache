@@ -1,6 +1,7 @@
 """
 Registers wagtail-cache in the wagtail admin dashboard.
 """
+
 from django.urls import include
 from django.urls import path
 from django.urls import reverse
