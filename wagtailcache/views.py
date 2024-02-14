@@ -1,6 +1,7 @@
 """
 Views for the wagtail admin dashboard.
 """
+
 from typing import Dict
 from typing import List
 

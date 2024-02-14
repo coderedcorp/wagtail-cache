@@ -55,7 +55,7 @@ foreach ($build in $mainBuildJson.value) {
 
 # Retrieve code coverage for this build ID.
 $mainCoverageJson = (
-    Invoke-WebRequest "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&api-version=5.1-preview.1"
+    Invoke-WebRequest "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1-preview.1"
 ).Content | ConvertFrom-Json
 foreach ($cov in $mainCoverageJson.coverageData.coverageStats) {
     if ($cov.label -eq "Lines") {
