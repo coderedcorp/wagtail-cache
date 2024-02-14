@@ -1,6 +1,7 @@
 """
 URLs for the wagtail admin dashboard.
 """
+
 from django.urls import path
 
 from wagtailcache.views import clear

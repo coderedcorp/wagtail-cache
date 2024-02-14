@@ -1,3 +1,6 @@
+import datetime
+import time
+
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
@@ -5,6 +8,7 @@ from django.test import modify_settings
 from django.test import override_settings
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.timezone import now
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
 
@@ -17,7 +21,9 @@ from home.models import WagtailPage
 from wagtailcache.cache import CacheControl
 from wagtailcache.cache import clear_cache
 from wagtailcache.cache import Status
+from wagtailcache.models import KeyringItem
 from wagtailcache.settings import wagtailcache_settings
+from wagtailcache.utils import batched
 
 
 def hook_true(obj, is_cacheable: bool) -> bool:
@@ -481,14 +487,15 @@ class WagtailCacheTest(TestCase):
     # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
     def test_cache_keyring(self):
         # Check if keyring is not present
-        self.assertEqual(self.cache.get("keyring"), None)
+        self.assertEqual(KeyringItem.objects.count(), 0)
         # Get should hit cache.
         self.get_miss(self.page_cachedpage.get_url())
+        self.assertEqual(KeyringItem.objects.count(), 1)
         # Get first key from keyring
-        key = next(iter(self.cache.get("keyring")))
         url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        keyring_item = KeyringItem.objects.active_for_url_regexes(url).first()
         # Compare Keys
-        self.assertEqual(key, url)
+        self.assertEqual(keyring_item.url, url)
 
     def test_clear_cache(self):
         # First get should miss cache.
@@ -614,3 +621,186 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(hook_fns, [hook_any])
         # The page should be cached normally due to hook returning garbage.
         self.test_page_hit()
+
+    # ---- MODELS --------------------------------------------------------------
+    def test_keyring_update_or_create(self):
+        expiry = now() + datetime.timedelta(hours=1)
+        key = "abc123"
+        url = "https://example.com/"
+
+        KeyringItem.objects.set(
+            expiry=expiry,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().url, url)
+
+        expiry2 = now() + datetime.timedelta(hours=1)
+        KeyringItem.objects.set(
+            expiry=expiry2,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().expiry, expiry2)
+
+    def test_delete_expired(self):
+        """
+        Cache items expire by themselves, so we only need to actively
+        delete database items
+        """
+        expiry1 = now() + datetime.timedelta(seconds=1)
+        expiry2 = now() + datetime.timedelta(seconds=2)
+        used_keys = []
+
+        for exp in [expiry1, expiry2]:
+            exp_iso = exp.isoformat()
+            key = f"key-{exp_iso}"
+            url = f"https://example.com/{exp_iso}"
+            KeyringItem.objects.set(
+                expiry=exp,
+                key=key,
+                url=url,
+            )
+            # Item should not expire
+            self.cache.set(key, url, 100)
+            used_keys.append(key)
+        self.assertEqual(KeyringItem.objects.count(), 2)
+        time.sleep(1)
+        KeyringItem.objects.clear_expired()
+        self.assertEqual(KeyringItem.objects.count(), 1)
+
+        # Cache items remain
+        for key in used_keys:
+            self.assertTrue(self.cache.get(key))
+
+    @override_settings(WAGTAIL_CACHE_BATCH_SIZE=2)
+    def test_bulk_delete(self):
+        """
+        Bulk delete removes cache items and database items that refer to them
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
+    @override_settings(WAGTAIL_CACHE_USE_RAW_DELETE=True)
+    def test_bulk_delete_raw_delete(self):
+        """
+        You can optionally use Django's `_raw_delete`
+        for speed with many cache keys.
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
+    def test_active_for_url_regexes(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=f"{url}/key-3/",
+        )
+        self.assertEqual(
+            KeyringItem.objects.active_for_url_regexes(url).count(), 2
+        )
+
+    def test_active_for_urls_no_regexes(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+        url2 = "https://test.example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=url2,
+        )
+        self.assertEqual(
+            KeyringItem.objects.active_for_url_regexes().count(), 2
+        )
+
+    def test_keyringitem_str(self):
+        future_expiry = datetime.datetime(year=2030, month=1, day=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        self.assertEqual(
+            str(KeyringItem.objects.first()),
+            "https://example.com -> key-2 (Expires: 2030-01-01 00:00:00+00:00)",
+        )
+
+    def test_batched(self):
+        self.assertEqual(
+            [batch for batch in batched("ABCDEFG", 3)],
+            [("A", "B", "C"), ("D", "E", "F"), ("G",)],
+        )
+
+    def test_batched_invalid_batch_size(self):
+        with self.assertRaises(ValueError):
+            next(batched("ABCDEFG", 0))

@@ -1,6 +1,7 @@
 """
 Default django settings for wagtail-cache.
 """
+
 from typing import Text
 
 from django.conf import settings
@@ -9,6 +10,7 @@ from django.conf import settings
 class _DefaultSettings:
     WAGTAIL_CACHE = True
     WAGTAIL_CACHE_BACKEND = "default"
+    WAGTAIL_CACHE_BATCH_SIZE = 100
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
     WAGTAIL_CACHE_IGNORE_COOKIES = True
     WAGTAIL_CACHE_IGNORE_QS = [
@@ -33,6 +35,7 @@ class _DefaultSettings:
         r"^trk_.*$",  # Listrak
         r"^utm_.*$",  # Google Analytics
     ]
+    WAGTAIL_CACHE_USE_RAW_DELETE = False
 
     def __getattribute__(self, attr: Text):
         # First load from Django settings.
