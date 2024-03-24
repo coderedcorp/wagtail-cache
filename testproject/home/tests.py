@@ -731,6 +731,18 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(KeyringItem.objects.count(), 1)
         self.assertEqual(KeyringItem.objects.first().expiry, expiry2)
 
+    def test_keyring_update_or_create__long_url(self):
+        expiry = now() + datetime.timedelta(hours=1)
+        key = "abc123"
+        url = f"https://example.com/?query={ 'a' * 900 }"
+
+        KeyringItem.objects.set(
+            expiry=expiry,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+
     def test_delete_expired(self):
         """
         Cache items expire by themselves, so we only need to actively
@@ -756,7 +768,6 @@ class WagtailCacheTest(TestCase):
         time.sleep(1)
         KeyringItem.objects.clear_expired()
         self.assertEqual(KeyringItem.objects.count(), 1)
-
         # Cache items remain
         for key in used_keys:
             self.assertTrue(self.cache.get(key))
