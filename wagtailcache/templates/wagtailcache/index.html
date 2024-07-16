@@ -25,7 +25,11 @@
     <b>{% trans "ENABLED" %}</b>
   </p>
   <p>
-    {% trans "Cached pages are automatically refreshed every" %} <b>{% cache_timeout %}</b>.<br>
+    {% if cache_timeout == None %}
+      {% trans "Cached pages do not expire." %}<br>
+    {% else %}
+      {% trans "Cached pages are automatically refreshed every" %} <b>{{ cache_timeout|seconds_to_readable }}</b>.<br>
+    {% endif %}
     {% trans "To modify this, change the <code>TIMEOUT</code> value of the cache backend in the project settings." %}
   </p>
   <p>

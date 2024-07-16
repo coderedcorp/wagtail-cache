@@ -26,6 +26,9 @@ def index(request):
         "wagtailcache/index.html",
         {
             "keyring": keyring,
+            "cache_timeout": caches[
+                wagtailcache_settings.WAGTAIL_CACHE_BACKEND
+            ].default_timeout
         },
     )
 

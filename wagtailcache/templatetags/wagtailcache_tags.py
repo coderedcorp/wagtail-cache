@@ -6,10 +6,10 @@ from django.utils.translation import gettext_lazy as _
 
 from wagtailcache.settings import wagtailcache_settings
 
-
 register = template.Library()
 
 
+@register.filter
 def seconds_to_readable(seconds: int) -> str:
     """
     Converts int seconds to a human readable string.
@@ -43,14 +43,3 @@ def get_wagtailcache_setting(value: str) -> Optional[object]:
     Returns a wagtailcache Django setting, or default.
     """
     return getattr(wagtailcache_settings, value, None)
-
-
-@register.simple_tag
-def cache_timeout() -> str:
-    """
-    Returns the wagtailcache timeout in human readable format.
-    """
-    timeout = caches[
-        wagtailcache_settings.WAGTAIL_CACHE_BACKEND
-    ].default_timeout
-    return seconds_to_readable(timeout)
