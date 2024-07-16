@@ -58,4 +58,4 @@ the ``dist/`` directory.
 
 .. code-block:: console
 
-    $ python setup.py sdist bdist_wheel
+    $ python -m build

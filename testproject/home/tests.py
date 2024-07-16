@@ -1,9 +1,11 @@
+import time
+
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
+from django.test import TestCase
 from django.test import modify_settings
 from django.test import override_settings
-from django.test import TestCase
 from django.urls import reverse
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
@@ -15,8 +17,8 @@ from home.models import CookiePage
 from home.models import CsrfPage
 from home.models import WagtailPage
 from wagtailcache.cache import CacheControl
-from wagtailcache.cache import clear_cache
 from wagtailcache.cache import Status
+from wagtailcache.cache import clear_cache
 from wagtailcache.settings import wagtailcache_settings
 
 
@@ -134,6 +136,7 @@ class WagtailCacheTest(TestCase):
             pass
 
     # --- UTILITIES ------------------------------------------------------------
+
     def head_hit(self, url: str):
         """
         HEAD a page and test that it was served from the cache.
@@ -198,6 +201,28 @@ class WagtailCacheTest(TestCase):
         )
         return response
 
+    def get_error(self, url: str):
+        """
+        Gets a page and tests that an error in the cache backend was handled.
+        """
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.ERROR.value
+        )
+        return response
+
+    def head_error(self, url: str):
+        """
+        HEAD a page and tests that an error in the cache backend was handled.
+        """
+        response = self.client.head(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get(self.header_name, None), Status.ERROR.value
+        )
+        return response
+
     def post_skip(self, url: str):
         """
         POSTS a page and tests that it was intentionally not served from
@@ -214,6 +239,7 @@ class WagtailCacheTest(TestCase):
         return response
 
     # ---- TEST PAGES ----------------------------------------------------------
+
     def test_page_miss(self):
         for page in self.should_cache_pages:
             self.head_miss(page.get_url())
@@ -417,6 +443,7 @@ class WagtailCacheTest(TestCase):
         self.test_page_404()
 
     # ---- TEST VIEWS ----------------------------------------------------------
+
     # Views use the decorators and should work without the middleware.
     @modify_settings(
         MIDDLEWARE={
@@ -459,6 +486,7 @@ class WagtailCacheTest(TestCase):
         self.get_hit(reverse("template_response_view"))
 
     # ---- ADMIN VIEWS ---------------------------------------------------------
+
     def test_admin(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse("wagtailcache:index"))
@@ -479,6 +507,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
 
     # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
+
     def test_cache_keyring(self):
         # Check if keyring is not present
         self.assertEqual(self.cache.get("keyring"), None)
@@ -489,6 +518,23 @@ class WagtailCacheTest(TestCase):
         url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
         # Compare Keys
         self.assertEqual(key, url)
+
+    @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
+    def test_cache_keyring_no_uri_key_duplication(self):
+        # First get to populate keyring
+        self.get_miss(self.page_cachedpage.get_url())
+        # Wait a short time
+        time.sleep(0.5)
+        # Fetch a different page
+        self.get_miss(self.page_wagtailpage.get_url())
+        # Wait until the first page is expired, but not the keyring
+        time.sleep(0.6)
+        # Fetch the first page again
+        self.get_miss(self.page_cachedpage.get_url())
+        # Check the keyring does not contain duplicate uri_keys
+        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        keyring = self.cache.get("keyring")
+        self.assertEqual(len(keyring.get(url, [])), 1)
 
     def test_clear_cache(self):
         # First get should miss cache.
@@ -520,6 +566,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(u2)
 
     # ---- ALTERNATE SETTINGS --------------------------------------------------
+
     @override_settings(WAGTAIL_CACHE=True)
     def test_enable_wagtailcache(self):
         # Intentionally enable wagtail-cache, make sure it works.
@@ -543,7 +590,30 @@ class WagtailCacheTest(TestCase):
         # Load admin panel to render the zero timeout.
         self.test_admin()
 
+    @override_settings(WAGTAIL_CACHE_BACKEND="error_get")
+    def test_page_error_get(self):
+        # Wagtail-cache should handle errors when fetching from cache backend.
+        for page in self.should_cache_pages:
+            # First get should get an error.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+            # Second get should get an error too.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+
+    @override_settings(WAGTAIL_CACHE_BACKEND="error_set")
+    def test_page_error_set(self):
+        # Wagtail-cache should handle errors when updating to cache backend.
+        for page in self.should_cache_pages:
+            # First get should get an error.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+            # Second get should get an error too.
+            self.head_error(page.get_url())
+            self.get_error(page.get_url())
+
     # ---- HOOKS ---------------------------------------------------------------
+
     def test_request_hook_true(self):
         # A POST should never be cached.
         response = self.client.post(reverse("cached_view"))
