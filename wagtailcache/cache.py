@@ -17,7 +17,8 @@ from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import cc_delim_re
+from django.utils.cache import cc_delim_re, set_response_etag, \
+    patch_cache_control
 from django.utils.cache import get_cache_key
 from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
@@ -25,6 +26,7 @@ from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_cache_control
 from django.utils.cache import patch_response_headers
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.http import parse_etags
 from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
@@ -233,8 +235,17 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         if response is None:
             setattr(request, "_wagtailcache_update", True)
             return None
-        # Hit. Return cached response.
+
+        # Hit. Return cached response or Not Modified.
         setattr(request, "_wagtailcache_update", False)
+        response: HttpResponse
+        if "If-None-Match" in request.headers and "Etag" in response.headers and \
+            response.headers["Etag"] in parse_etags(
+            request.headers["If-None-Match"]):
+            not_modified = HttpResponse(status=304)
+            not_modified.headers["Etag"] = response.headers["Etag"]
+            # TODO: Cache-Control and Expires?
+            return not_modified
         return response
 
 
@@ -325,6 +336,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             patch_cache_control(response, no_cache=True)
         else:
             patch_response_headers(response, max_age)
+            patch_cache_control(response, must_revalidate=True)
 
         if timeout != 0:
             try:
@@ -344,13 +356,20 @@ class UpdateCacheMiddleware(MiddlewareMixin):
                     uri_keys.append(cache_key)
                     keyring[uri] = uri_keys
                     self._wagcache.set("keyring", keyring)
+
+                def set_etag(r):
+                    if "Etag" not in r.headers:
+                        set_response_etag(r)
+
                 if isinstance(response, SimpleTemplateResponse):
 
                     def callback(r):
+                        set_etag(response)
                         self._wagcache.set(cache_key, r, timeout)
 
                     response.add_post_render_callback(callback)
                 else:
+                    set_etag(response)
                     self._wagcache.set(cache_key, response, timeout)
                 # Add a response header to indicate this was a cache miss.
                 _patch_header(response, Status.MISS)
