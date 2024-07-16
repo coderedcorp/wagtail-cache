@@ -241,7 +241,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         response: HttpResponse
         if "If-None-Match" in request.headers and "Etag" in response.headers and \
             response.headers["Etag"] in parse_etags(
-            request.headers["If-None-Match"]):
+                request.headers["If-None-Match"]):
             not_modified = HttpResponse(status=304)
             not_modified.headers["Etag"] = response.headers["Etag"]
             # TODO: Cache-Control and Expires?
