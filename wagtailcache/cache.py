@@ -17,14 +17,14 @@ from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import cc_delim_re, set_response_etag, \
-    patch_cache_control
+from django.utils.cache import cc_delim_re
 from django.utils.cache import get_cache_key
 from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
 from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_cache_control
 from django.utils.cache import patch_response_headers
+from django.utils.cache import set_response_etag
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.http import parse_etags
 from wagtail import hooks
@@ -223,7 +223,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
                 setattr(request, "_wagtailcache_update", True)
                 return None
             # We have a key, get the cached response.
-            response = self._wagcache.get(cache_key)
+            response: HttpResponse = self._wagcache.get(cache_key)
 
         except Exception:
             # If the cache backend is currently unresponsive or errors out,
@@ -235,13 +235,14 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         if response is None:
             setattr(request, "_wagtailcache_update", True)
             return None
-
         # Hit. Return cached response or Not Modified.
         setattr(request, "_wagtailcache_update", False)
-        response: HttpResponse
-        if "If-None-Match" in request.headers and "Etag" in response.headers and \
-            response.headers["Etag"] in parse_etags(
-                request.headers["If-None-Match"]):
+        if (
+            "If-None-Match" in request.headers
+            and "Etag" in response.headers
+            and response.headers["Etag"]
+            in parse_etags(request.headers["If-None-Match"])
+        ):
             not_modified = HttpResponse(status=304)
             not_modified.headers["Etag"] = response.headers["Etag"]
             # TODO: Cache-Control and Expires?
