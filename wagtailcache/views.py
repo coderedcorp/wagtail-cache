@@ -28,7 +28,7 @@ def index(request):
             "keyring": keyring,
             "cache_timeout": caches[
                 wagtailcache_settings.WAGTAIL_CACHE_BACKEND
-            ].default_timeout
+            ].default_timeout,
         },
     )
 
