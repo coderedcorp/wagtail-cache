@@ -44,10 +44,6 @@ version = {attr = "wagtailcache.__version__"}
 
 # -- TOOLS ----------------------------
 
-[tool.black]
-line-length = 80
-extend-exclude = ["build", "migrations"]
-
 [tool.codespell]
 ignore-words-list = ["doubleclick"]
 
@@ -57,7 +53,6 @@ django_settings_module = "testproject.settings"
 [tool.mypy]
 ignore_missing_imports = true
 check_untyped_defs = true
-plugins = ["mypy_django_plugin.main"]
 exclude = [
     '^\..*',
     'migrations',
