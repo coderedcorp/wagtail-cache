@@ -125,9 +125,11 @@ stages:
         downloadType: 'specific'
         downloadPath: '$(Agent.WorkFolder)/current-artifacts'
 
-    - pwsh: ./ci/compare-codecov.ps1
+    - pwsh: ./ci/compare-codecov.ps1 -wd $Env:WorkDir
       displayName: 'CR-QC: Compare code coverage'
       failOnStderr: false
+      env:
+        WorkDir: $(Agent.WorkFolder)
 
   - job: docs
     displayName: Documentation
