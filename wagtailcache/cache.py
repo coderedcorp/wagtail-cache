@@ -17,7 +17,7 @@ from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import cc_delim_re
+from django.utils.cache import cc_delim_re, patch_cache_control
 from django.utils.cache import get_cache_key
 from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
@@ -331,7 +331,11 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         if timeout is None:
             timeout = self._wagcache.default_timeout
             max_age = wagtailcache_settings.WAGTAIL_CACHE_MAX_AGE
-        patch_response_headers(response, max_age)
+        if max_age is None:
+            patch_cache_control(response, no_cache=True)
+        else:
+            patch_response_headers(response, max_age)
+
         if timeout != 0:
             try:
                 cache_key = _learn_cache_key(
