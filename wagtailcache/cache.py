@@ -164,7 +164,7 @@ def _get_cache_key(r: WSGIRequest, c: BaseCache) -> str:
 
 
 def _learn_cache_key(
-    r: WSGIRequest, s: HttpResponse, t: int, c: BaseCache
+    r: WSGIRequest, s: HttpResponse, t: Optional[int], c: BaseCache
 ) -> str:
     """
     Wrapper for Django's learn_cache_key which first strips specific
@@ -327,10 +327,12 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         # ``Cache-Control`` header before reverting to using the cache's
         # default.
         timeout = get_max_age(response)
+        max_age = timeout
         if timeout is None:
             timeout = self._wagcache.default_timeout
-        patch_response_headers(response, timeout)
-        if timeout:
+            max_age = wagtailcache_settings.WAGTAIL_CACHE_MAX_AGE
+        patch_response_headers(response, max_age)
+        if timeout != 0:
             try:
                 cache_key = _learn_cache_key(
                     request, response, timeout, self._wagcache
