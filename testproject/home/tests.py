@@ -3,9 +3,9 @@ import time
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
+from django.test import TestCase
 from django.test import modify_settings
 from django.test import override_settings
-from django.test import TestCase
 from django.urls import reverse
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
@@ -17,8 +17,8 @@ from home.models import CookiePage
 from home.models import CsrfPage
 from home.models import WagtailPage
 from wagtailcache.cache import CacheControl
-from wagtailcache.cache import clear_cache
 from wagtailcache.cache import Status
+from wagtailcache.cache import clear_cache
 from wagtailcache.settings import wagtailcache_settings
 
 

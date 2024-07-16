@@ -93,7 +93,7 @@ stages:
     - task: UsePythonVersion@0
       displayName: 'Use Python version'
       inputs:
-        versionSpec: '3.11'
+        versionSpec: '3.12'
         architecture: 'x64'
 
     - script: python -m pip install -r requirements-dev.txt
@@ -102,14 +102,11 @@ stages:
     - script: codespell ./docs/ ./wagtailcache/
       displayName: 'CR-QC: Spell check'
 
-    - script: flake8 .
-      displayName: 'CR-QC: Static analysis (flake8)'
+    - script: ruff check .
+      displayName: 'CR-QC: Static analysis (ruff)'
 
-    - script: isort --check .
-      displayName: 'CR-QC: Format check (isort)'
-
-    - script: black --check .
-      displayName: 'CR-QC: Format check (black)'
+    - script: ruff format --check .
+      displayName: 'CR-QC: Format check'
 
     - script: mypy ./wagtailcache/
       displayName: 'CR-QC: Type check (mypy)'
@@ -144,7 +141,7 @@ stages:
     - task: UsePythonVersion@0
       displayName: 'Use Python version'
       inputs:
-        versionSpec: '3.11'
+        versionSpec: '3.12'
         architecture: 'x64'
 
     - script: python -m pip install -r requirements-dev.txt
