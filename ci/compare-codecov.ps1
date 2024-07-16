@@ -69,6 +69,7 @@ foreach ($cov in $mainCoverageJson.coverageData.coverageStats) {
 
 # Get current code coverage from coverage.xml file.
 $coveragePath = Get-ChildItem -Recurse -Filter "coverage.xml" $wd
+Write-Output "Coverage path:" $coveragePath
 if (Test-Path -Path $coveragePath) {
     [xml]$BranchXML = Get-Content $coveragePath
 }
@@ -84,7 +85,7 @@ $branchlinerate = [math]::Round([decimal]$BranchXML.coverage.'line-rate' * 100, 
 
 
 Write-Output ""
-Write-Output "Dev branch coverage rate:   $mainlinerate%"
+Write-Output "Main branch coverage rate:  $mainlinerate%"
 Write-Output "This branch coverage rate:  $branchlinerate%"
 
 if ($mainlinerate -eq 0) {
