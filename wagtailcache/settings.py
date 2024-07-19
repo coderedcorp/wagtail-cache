@@ -13,6 +13,7 @@ class _DefaultSettings:
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
     WAGTAIL_CACHE_IGNORE_COOKIES = True
     WAGTAIL_CACHE_MAX_AGE = 5 * 60
+    WAGTAIL_CACHE_USE_ETAGS = False
     WAGTAIL_CACHE_IGNORE_QS = [
         r"^_bta_.*$",  # Bronto
         r"^_ga$",  # Google Analytics

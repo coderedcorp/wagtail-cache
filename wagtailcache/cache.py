@@ -31,7 +31,6 @@ from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
 
-
 logger = logging.getLogger("wagtail-cache")
 
 
@@ -144,11 +143,11 @@ def _chop_response_vary(r: WSGIRequest, s: HttpResponse) -> HttpResponse:
         and s.has_header("Vary")
         and has_vary_header(s, "Cookie")
         and not (
-            settings.CSRF_COOKIE_NAME in s.cookies
-            or settings.CSRF_COOKIE_NAME in r.COOKIES
-            or settings.SESSION_COOKIE_NAME in s.cookies
-            or settings.SESSION_COOKIE_NAME in r.COOKIES
-        )
+        settings.CSRF_COOKIE_NAME in s.cookies
+        or settings.CSRF_COOKIE_NAME in r.COOKIES
+        or settings.SESSION_COOKIE_NAME in s.cookies
+        or settings.SESSION_COOKIE_NAME in r.COOKIES
+    )
     ):
         _delete_vary_cookie(s)
     return s
@@ -238,14 +237,16 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         # Hit. Return cached response or Not Modified.
         setattr(request, "_wagtailcache_update", False)
         if (
-            "If-None-Match" in request.headers
+            wagtailcache_settings.WAGTAIL_CACHE_USE_ETAGS
+            and "If-None-Match" in request.headers
             and "Etag" in response.headers
             and response.headers["Etag"]
             in parse_etags(request.headers["If-None-Match"])
         ):
             not_modified = HttpResponse(status=304)
             not_modified.headers["Etag"] = response.headers["Etag"]
-            # TODO: Cache-Control and Expires?
+            not_modified.headers["Cache-Control"] = response.headers["Cache-Control"]
+            not_modified.headers["Expires"] = response.headers["Expires"]
             return not_modified
         return response
 
@@ -308,10 +309,10 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             and response.status_code in (200, 301, 302, 304, 404)
             and not response.streaming
             and not (
-                not request.COOKIES
-                and response.cookies
-                and has_vary_header(response, "Cookie")
-            )
+            not request.COOKIES
+            and response.cookies
+            and has_vary_header(response, "Cookie")
+        )
         )
         # Allow the user to override our caching decision.
         for fn in hooks.get_hooks("is_response_cacheable"):
@@ -337,7 +338,8 @@ class UpdateCacheMiddleware(MiddlewareMixin):
             patch_cache_control(response, no_cache=True)
         else:
             patch_response_headers(response, max_age)
-            patch_cache_control(response, must_revalidate=True)
+            if wagtailcache_settings.WAGTAIL_CACHE_USE_ETAGS:
+                patch_cache_control(response, must_revalidate=True)
 
         if timeout != 0:
             try:
@@ -359,7 +361,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
                     self._wagcache.set("keyring", keyring)
 
                 def set_etag(r):
-                    if "Etag" not in r.headers:
+                    if wagtailcache_settings.WAGTAIL_CACHE_USE_ETAGS and "Etag" not in r.headers:
                         set_response_etag(r)
 
                 if isinstance(response, SimpleTemplateResponse):
