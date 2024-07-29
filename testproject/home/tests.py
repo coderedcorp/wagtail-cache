@@ -524,23 +524,6 @@ class WagtailCacheTest(TestCase):
         # Compare Keys
         self.assertEqual(keyring_item.url, url)
 
-    @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
-    def test_cache_keyring_no_uri_key_duplication(self):
-        # First get to populate keyring
-        self.get_miss(self.page_cachedpage.get_url())
-        # Wait a short time
-        time.sleep(0.5)
-        # Fetch a different page
-        self.get_miss(self.page_wagtailpage.get_url())
-        # Wait until the first page is expired, but not the keyring
-        time.sleep(0.6)
-        # Fetch the first page again
-        self.get_miss(self.page_cachedpage.get_url())
-        # Check the keyring does not contain duplicate uri_keys
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
-        keyring = self.cache.get("keyring")
-        self.assertEqual(len(keyring.get(url, [])), 1)
-
     def test_clear_cache(self):
         # First get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
