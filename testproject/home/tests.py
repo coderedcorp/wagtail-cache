@@ -755,7 +755,9 @@ class WagtailCacheTest(TestCase):
             )
             self.cache.set(key, url, timeout)
 
-        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+        KeyringItem.objects.bulk_delete_cache_keys(
+            KeyringItem.objects.filter(key__in=keys[:4])
+        )
 
         for key in keys[:4]:
             self.assertFalse(KeyringItem.objects.filter(key=key).exists())
@@ -784,7 +786,9 @@ class WagtailCacheTest(TestCase):
             )
             self.cache.set(key, url, timeout)
 
-        KeyringItem.objects.bulk_delete_cache_keys(keys[:4])
+        KeyringItem.objects.bulk_delete_cache_keys(
+            KeyringItem.objects.filter(key__in=keys[:4])
+        )
 
         for key in keys[:4]:
             self.assertFalse(KeyringItem.objects.filter(key=key).exists())
@@ -815,7 +819,7 @@ class WagtailCacheTest(TestCase):
             url=f"{url}/key-3/",
         )
         self.assertEqual(
-            KeyringItem.objects.active_for_url_regexes(url).count(), 2
+            KeyringItem.objects.active_for_url_regexes([url]).count(), 2
         )
 
     def test_active_for_urls_no_regexes(self):
@@ -840,7 +844,7 @@ class WagtailCacheTest(TestCase):
             url=url2,
         )
         self.assertEqual(
-            KeyringItem.objects.active_for_url_regexes().count(), 2
+            KeyringItem.objects.active_for_url_regexes([]).count(), 2
         )
 
     def test_keyringitem_str(self):
