@@ -3,7 +3,6 @@ Functionality to set, serve from, and clear the cache.
 """
 
 import logging
-import datetime
 import re
 from enum import Enum
 from functools import wraps
@@ -25,7 +24,6 @@ from django.utils.cache import has_vary_header
 from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_response_headers
 from django.utils.deprecation import MiddlewareMixin
-from django.utils.timezone import now
 from wagtail import hooks
 
 from wagtailcache.models import KeyringItem
