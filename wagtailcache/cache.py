@@ -27,9 +27,22 @@ from django.utils.deprecation import MiddlewareMixin
 from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction
 
 
 logger = logging.getLogger("wagtail-cache")
+
+
+class MiddlewareMixinFixed(MiddlewareMixin):
+    def _async_check(self):
+        """
+        If get_response is a coroutine function, turns us into async mode so
+        a thread is not consumed during a whole request.
+        """
+        if iscoroutinefunction(self.get_response):
+            # Mark the class as async-capable, but do the actual switch
+            # inside __call__ to avoid swapping out dunder methods
+            markcoroutinefunction(self)
 
 
 class CacheControl(Enum):
@@ -177,7 +190,7 @@ def _learn_cache_key(
     return learn_cache_key(r, s, t, None, c)
 
 
-class FetchFromCacheMiddleware(MiddlewareMixin):
+class FetchFromCacheMiddleware(MiddlewareMixinFixed):
     """
     Loads a request from the cache if it exists.
     Mostly stolen from ``django.middleware.cache.FetchFromCacheMiddleware``.
@@ -244,7 +257,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         return response
 
 
-class UpdateCacheMiddleware(MiddlewareMixin):
+class UpdateCacheMiddleware(MiddlewareMixinFixed):
     """
     Saves a response to the cache.
     Mostly stolen from ``django.middleware.cache.UpdateCacheMiddleware``.
