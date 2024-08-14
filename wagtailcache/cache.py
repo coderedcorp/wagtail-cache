@@ -16,6 +16,7 @@ from django.core.cache import caches
 from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
+from django.http.request import HttpRequest
 from django.template.response import SimpleTemplateResponse
 from django.utils.cache import cc_delim_re
 from django.utils.cache import get_cache_key
@@ -23,7 +24,7 @@ from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
 from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_response_headers
-from django.utils.deprecation import MiddlewareMixin
+from django.utils.deprecation import GetResponseCallable, MiddlewareMixin
 from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
@@ -34,6 +35,11 @@ logger = logging.getLogger("wagtail-cache")
 
 
 class MiddlewareMixinFixed(MiddlewareMixin):
+    def __init__(
+        self, get_response: Callable[[HttpRequest], HttpResponse] | None = ...
+    ) -> None:
+        super().__init__(get_response)
+
     def _async_check(self):
         """
         If get_response is a coroutine function, turns us into async mode so
