@@ -16,7 +16,6 @@ from django.core.cache import caches
 from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
-from django.http.request import HttpRequest
 from django.template.response import SimpleTemplateResponse
 from django.utils.cache import cc_delim_re
 from django.utils.cache import get_cache_key
@@ -24,31 +23,13 @@ from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
 from django.utils.cache import learn_cache_key
 from django.utils.cache import patch_response_headers
-from django.utils.deprecation import GetResponseCallable, MiddlewareMixin
+from django.utils.deprecation import MiddlewareMixin
 from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
-from asgiref.sync import iscoroutinefunction, markcoroutinefunction
 
 
 logger = logging.getLogger("wagtail-cache")
-
-
-class MiddlewareMixinFixed(MiddlewareMixin):
-    def __init__(
-        self, get_response: Callable[[HttpRequest], HttpResponse] | None = ...
-    ) -> None:
-        super().__init__(get_response)
-
-    def _async_check(self):
-        """
-        If get_response is a coroutine function, turns us into async mode so
-        a thread is not consumed during a whole request.
-        """
-        if iscoroutinefunction(self.get_response):
-            # Mark the class as async-capable, but do the actual switch
-            # inside __call__ to avoid swapping out dunder methods
-            markcoroutinefunction(self)
 
 
 class CacheControl(Enum):
@@ -196,16 +177,16 @@ def _learn_cache_key(
     return learn_cache_key(r, s, t, None, c)
 
 
-class FetchFromCacheMiddleware(MiddlewareMixinFixed):
+class FetchFromCacheMiddleware(MiddlewareMixin):
     """
     Loads a request from the cache if it exists.
     Mostly stolen from ``django.middleware.cache.FetchFromCacheMiddleware``.
     """
 
     def __init__(self, get_response=None):
+        super().__init__(get_response)
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
-        self._async_check()
 
     def process_request(self, request: WSGIRequest) -> Optional[HttpResponse]:
         if not wagtailcache_settings.WAGTAIL_CACHE:
@@ -263,16 +244,16 @@ class FetchFromCacheMiddleware(MiddlewareMixinFixed):
         return response
 
 
-class UpdateCacheMiddleware(MiddlewareMixinFixed):
+class UpdateCacheMiddleware(MiddlewareMixin):
     """
     Saves a response to the cache.
     Mostly stolen from ``django.middleware.cache.UpdateCacheMiddleware``.
     """
 
     def __init__(self, get_response=None):
+        super().__init__(get_response)
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
-        self._async_check()
 
     def process_response(
         self, request: WSGIRequest, response: HttpResponse
