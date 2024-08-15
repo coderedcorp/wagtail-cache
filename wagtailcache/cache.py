@@ -184,7 +184,8 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
     """
 
     def __init__(self, get_response=None):
-        super().__init__(get_response)
+        if get_response:
+            super().__init__(get_response)
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
 
@@ -251,7 +252,8 @@ class UpdateCacheMiddleware(MiddlewareMixin):
     """
 
     def __init__(self, get_response=None):
-        super().__init__(get_response)
+        if get_response:
+            super().__init__(get_response)
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         self.get_response = get_response
 
