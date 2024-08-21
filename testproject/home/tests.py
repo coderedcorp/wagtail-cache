@@ -534,6 +534,17 @@ class WagtailCacheTest(TestCase):
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
+    @override_settings(WAGTAIL_CACHE_USE_RAW_DELETE=True)
+    def test_clear_cache_raw_delete(self):
+        # First get should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # Second get should hit cache.
+        self.get_hit(self.page_cachedpage.get_url())
+        # clear all from Cache
+        clear_cache()
+        # Now the page should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+
     def test_clear_cache_url(self):
         u1 = self.page_cachedpage.get_url()
         u2 = self.page_cachedpage.get_url() + "?action=pytest"

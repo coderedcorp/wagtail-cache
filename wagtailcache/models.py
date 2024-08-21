@@ -27,9 +27,19 @@ class KeyringItemManager(models.Manager):
         self.clear_expired()
         return item
 
+    def _delete_qs(self, keys_qs: QuerySet) -> None:
+        # Delete from database, optionally use `_raw_delete`
+        # for speed with many cache keys.
+        if wagtailcache_settings.WAGTAIL_CACHE_USE_RAW_DELETE:
+            keys_qs.delete()
+            keys_qs._raw_delete(using=self.db)
+        else:
+            keys_qs.delete()
+
     def bulk_delete_cache_keys(self, keys_qs: QuerySet) -> None:
         """
-        Bulk delete the keys, in batches
+        Bulk delete the keys from the cache in batches, and the
+        KeyringItem instances.
         """
         # Delete from cache
         for key_batch in batched(
@@ -37,12 +47,15 @@ class KeyringItemManager(models.Manager):
             wagtailcache_settings.WAGTAIL_CACHE_BATCH_SIZE,
         ):
             self._wagcache.delete_many(key_batch)
-        # Delete from database, optionally use `_raw_delete`
-        # for speed with many cache keys.
-        if wagtailcache_settings.WAGTAIL_CACHE_USE_RAW_DELETE:
-            keys_qs._raw_delete(using=self.db)
-        else:
-            keys_qs.delete()
+
+        self._delete_qs(keys_qs)
+
+    def bulk_clear_cache(self):
+        """
+        Clear the whole cache and all KeyringItem instances.
+        """
+        self._wagcache.clear()
+        self._delete_qs(self.all())
 
     def clear_expired(self) -> None:
         """
