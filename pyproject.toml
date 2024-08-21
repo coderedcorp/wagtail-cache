@@ -1,25 +1,79 @@
-[tool.black]
-line-length = 80
-target-version = ['py38', 'py39', 'py310', 'py311']
-# Regular expression of files to exclude.
-exclude = '''
-/(
-    \.venv
-    | build
-    | migrations
-)/
-'''
+# -- PACKAGE INFO ---------------------
 
-[tool.isort]
-force_alphabetical_sort_within_sections = true
-force_single_line = true
-lines_after_imports = 2
-lines_before_imports = 0
-lines_between_sections = 1
-lines_between_types = 0
-line_length = 80
-profile = "black"
-skip_gitignore = true
-extend_skip = ["migrations"]
-# Specific to this project
-known_first_party = ["home", "wagtailcache"]
+[build-system]
+requires = ["setuptools >= 65.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    {name = "CodeRed LLC", email = "info@coderedcorp.com"}
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Framework :: Django",
+    "Framework :: Wagtail",
+    "Framework :: Wagtail :: 3",
+    "Framework :: Wagtail :: 4",
+    "Framework :: Wagtail :: 5",
+    "Framework :: Wagtail :: 6",
+]
+dependencies = [
+    "wagtail>=3.0,<7",
+]
+description = "A simple page cache for Wagtail based on the Django cache middleware."
+dynamic = ["version"]
+license = {file = "LICENSE"}
+name = "wagtail-cache"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[project.urls]
+Source = "https://github.com/coderedcorp/wagtail-cache"
+
+[tool.setuptools]
+packages = ["wagtailcache"]
+
+[tool.setuptools.dynamic]
+version = {attr = "wagtailcache.__version__"}
+
+
+# -- TOOLS ----------------------------
+
+[tool.codespell]
+ignore-words-list = ["doubleclick"]
+
+[tool.django-stubs]
+django_settings_module = "testproject.settings"
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+exclude = [
+    '^\..*',
+    'migrations',
+    'node_modules',
+    'venv',
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "testproject.settings"
+junit_family = "xunit2"
+addopts = "--cov wagtailcache --cov-report html --cov-report xml --junitxml junit/test-results.xml"
+python_files = "tests.py test_*.py"
+
+[tool.ruff]
+extend-exclude = ["build", "migrations"]
+line-length = 80
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+force-single-line = true
+lines-after-imports = 2

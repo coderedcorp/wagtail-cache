@@ -2,10 +2,30 @@
 Release Notes
 =============
 
+
+2.5.1
+=====
+
+* Bug fix: Support Django 5.1
+
+
+2.5.0
+=====
+
+* Bug fix: gracefully handle backend cache errors by returning the un-cached page and adding an ``X-Wagtail-Cache: err`` header. For example, if the cache backend/server is down, if the cache runs out of memory, etc. These errors are also logged using the ``wagtail-cache`` Python logger.
+
+* Bug fix: prevent duplicate entries in the keyring (used to show a list of cached pages).
+
+* Docs: clarify behavior of cache backend ``TIMEOUT`` setting. Move advanced docs from install page to a separate page to keep it simple for beginners.
+
+* Switch from black, flake8, and isort to ruff. Switch from ``setup.py`` to ``pyproject.toml``.
+
+
 2.4.0
 =====
 
 * Support Wagtail 6 and Django 5.1
+
 
 2.3.0
 =====
