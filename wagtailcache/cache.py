@@ -410,10 +410,9 @@ def cache_page(view_func: Callable[..., HttpResponse]):
     ) -> HttpResponse:
         # Try to fetch an already cached page from wagtail-cache.
         response = FetchFromCacheMiddleware(view_func).process_request(request)
-        if response:
-            return response
-        # Since we don't have a response at this point, process the request.
-        response = view_func(request, *args, **kwargs)
+        if response is None:
+            # Since we don't have a response at this point, process the request.
+            response = view_func(request, *args, **kwargs)
         # Cache the response.
         response = UpdateCacheMiddleware(view_func).process_response(
             request, response
