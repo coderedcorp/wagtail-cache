@@ -415,7 +415,9 @@ def cache_page(view_func: Callable[..., HttpResponse]):
         # Since we don't have a response at this point, process the request.
         response = view_func(request, *args, **kwargs)
         # Cache the response.
-        response = UpdateCacheMiddleware(view_func).process_response(request, response)
+        response = UpdateCacheMiddleware(view_func).process_response(
+            request, response
+        )
         return response
 
     return _wrapped_view_func
