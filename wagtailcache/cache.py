@@ -183,10 +183,9 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
     Mostly stolen from ``django.middleware.cache.FetchFromCacheMiddleware``.
     """
 
-    def __init__(self, get_response=None):
+    def __init__(self, get_response):
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        self.get_response = get_response
-        self._async_check()
+        super().__init__(get_response)
 
     def process_request(self, request: WSGIRequest) -> Optional[HttpResponse]:
         if not wagtailcache_settings.WAGTAIL_CACHE:
@@ -250,10 +249,9 @@ class UpdateCacheMiddleware(MiddlewareMixin):
     Mostly stolen from ``django.middleware.cache.UpdateCacheMiddleware``.
     """
 
-    def __init__(self, get_response=None):
+    def __init__(self, get_response):
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-        self.get_response = get_response
-        self._async_check()
+        super().__init__(get_response)
 
     def process_response(
         self, request: WSGIRequest, response: HttpResponse
@@ -411,13 +409,15 @@ def cache_page(view_func: Callable[..., HttpResponse]):
         request: WSGIRequest, *args, **kwargs
     ) -> HttpResponse:
         # Try to fetch an already cached page from wagtail-cache.
-        response = FetchFromCacheMiddleware().process_request(request)
+        response = FetchFromCacheMiddleware(view_func).process_request(request)
         if response:
             return response
         # Since we don't have a response at this point, process the request.
         response = view_func(request, *args, **kwargs)
         # Cache the response.
-        response = UpdateCacheMiddleware().process_response(request, response)
+        response = UpdateCacheMiddleware(view_func).process_response(
+            request, response
+        )
         return response
 
     return _wrapped_view_func
