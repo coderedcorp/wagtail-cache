@@ -3,6 +3,12 @@ Release Notes
 =============
 
 
+2.5.1
+=====
+
+* Bug fix: Support Django 5.1
+
+
 2.5.0
 =====
 
