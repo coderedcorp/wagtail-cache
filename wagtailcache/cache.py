@@ -332,6 +332,10 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         timeout = get_max_age(response)
         if timeout is None:
             timeout = self._wagcache.default_timeout
+        if wagtailcache_settings.WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC:
+            timeout = wagtailcache_settings.WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC(
+                timeout
+            )
         patch_response_headers(response, timeout)
         if timeout:
             try:

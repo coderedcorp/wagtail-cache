@@ -1,8 +1,10 @@
 from django.core.management.base import BaseCommand
+
 from wagtailcache.models import KeyringItem
 
+
 class Command(BaseCommand):
-    help = 'Clear expired KeyringItems from the database'
+    help = "Clear expired KeyringItems from the database"
 
     def handle(self, *args, **options):
         try:
