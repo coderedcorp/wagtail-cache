@@ -24,7 +24,10 @@ class KeyringItemManager(models.Manager):
             url=url,
             key=key,
         )
-        self.clear_expired()
+
+        if wagtailcache_settings.WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET:
+            self.clear_expired()
+
         return item
 
     def _delete_qs(self, keys_qs: QuerySet) -> None:
@@ -57,11 +60,11 @@ class KeyringItemManager(models.Manager):
         self._wagcache.clear()
         self._delete_qs(self.all())
 
-    def clear_expired(self) -> None:
+    def clear_expired(self) -> int:
         """
         Clear all items whose expiry has passed.
         """
-        self.filter(expiry__lt=now()).delete()
+        return self.filter(expiry__lt=now()).delete()[0]
 
     def active(self):
         return self.filter(expiry__gt=now())
