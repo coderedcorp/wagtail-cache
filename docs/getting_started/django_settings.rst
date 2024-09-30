@@ -102,6 +102,23 @@ can set this to ``[r".*"]`` which will ignore all querystrings. This is surely
 a terrible idea, but it can be done.
 
 
+.. _WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET:
+
+WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET
+----------------------------------
+
+.. versionadded::
+
+   This setting will clear any expired `KeyringItems` as a new item is set,
+   and is OFF by default.
+
+If set to `True`, as a cache item is set the manager will delete any expired
+items from the database. If there are likely to be many expired items in the
+cache, then that might be time-consuming so this setting can be turned off.
+You can use the Django management command `wagtail_cache_clear_expired_items`
+periodically to clear expired items instead.
+
+
 .. _WAGTAIL_CACHE_USE_RAW_DELETE:
 
 WAGTAIL_CACHE_USE_RAW_DELETE
