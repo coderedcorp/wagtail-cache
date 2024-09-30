@@ -39,6 +39,7 @@ def hook_any(obj, is_cacheable: bool):
 
 
 class WagtailCacheTest(TestCase):
+    # Django's default `testserver` is not a valid domain name.
     client_headers = {"SERVER_NAME": "example.com"}
 
     @classmethod
