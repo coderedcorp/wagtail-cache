@@ -19,11 +19,14 @@ class KeyringItemManager(models.Manager):
         """
         Create or update a keyring item, clearing expired items too.
         """
-        item, _ = self.update_or_create(
-            defaults={"expiry": expiry},
-            url=url,
-            key=key,
-        )
+        # Ensure `full_clean` is called to validate the model.
+        try:
+            item = self.get(url=url, key=key)
+            item.expiry = expiry
+        except KeyringItem.DoesNotExist:
+            item = KeyringItem(url=url, key=key, expiry=expiry)
+        item.full_clean()
+        item.save()
 
         if wagtailcache_settings.WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET:
             self.clear_expired()

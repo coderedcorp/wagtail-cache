@@ -39,6 +39,8 @@ def hook_any(obj, is_cacheable: bool):
 
 
 class WagtailCacheTest(TestCase):
+    client_headers = {"SERVER_NAME": "example.com"}
+
     @classmethod
     def get_content_type(cls, modelname: str):
         ctype, _ = ContentType.objects.get_or_create(
@@ -145,7 +147,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and test that it was served from the cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
         return response
 
@@ -153,7 +155,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that it was served from the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
         return response
 
@@ -161,7 +163,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and test that it was not served from the cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
@@ -170,7 +172,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that it was not served from the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
@@ -181,7 +183,7 @@ class WagtailCacheTest(TestCase):
         HEAD a page and test that it was intentionally not served from the
         cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -195,7 +197,7 @@ class WagtailCacheTest(TestCase):
         Gets a page and tests that it was intentionally not served from
         the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -209,7 +211,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that an error in the cache backend was handled.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get(self.header_name, None), Status.ERROR.value
@@ -220,7 +222,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and tests that an error in the cache backend was handled.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get(self.header_name, None), Status.ERROR.value
@@ -232,7 +234,7 @@ class WagtailCacheTest(TestCase):
         POSTS a page and tests that it was intentionally not served from
         the cache.
         """
-        response = self.client.post(url)
+        response = self.client.post(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -292,6 +294,9 @@ class WagtailCacheTest(TestCase):
             # A get with both should also hit, since it is the second request.
             self.head_hit(page.get_url() + "?valid=0&utm_code=0")
             self.get_hit(page.get_url() + "?valid=0&utm_code=0")
+            # A get with a very long querysting should return an error
+            self.head_error(page.get_url() + "?" + "a" * 2000)
+            self.get_error(page.get_url() + "?" + "a" * 2000)
 
     @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=False)
     def test_cookie_page(self):
@@ -384,6 +389,7 @@ class WagtailCacheTest(TestCase):
                 "password": "the cybers",
                 "return_url": self.page_cachedpage_restricted.get_url(),
             },
+            **self.client_headers,
         )
         self.assertRedirects(
             response, self.page_cachedpage_restricted.get_url()
@@ -493,7 +499,9 @@ class WagtailCacheTest(TestCase):
 
     def test_admin(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("wagtailcache:index"))
+        response = self.client.get(
+            reverse("wagtailcache:index"), **self.client_headers
+        )
         self.client.logout()
         self.assertEqual(response.status_code, 200)
 
@@ -504,7 +512,9 @@ class WagtailCacheTest(TestCase):
         self.get_hit(self.page_cachedpage.get_url())
         # Now log in as admin and clear the cache.
         self.client.force_login(self.user)
-        response = self.client.get(reverse("wagtailcache:clearcache"))
+        response = self.client.get(
+            reverse("wagtailcache:clearcache"), **self.client_headers
+        )
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # Now the page should miss cache.
@@ -519,7 +529,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
         self.assertEqual(KeyringItem.objects.count(), 1)
         # Get first key from keyring
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        url = "http://%s%s" % ("example.com", self.page_cachedpage.get_url())
         keyring_item = KeyringItem.objects.active_for_url_regexes(url).first()
         # Compare Keys
         self.assertEqual(keyring_item.url, url)
@@ -569,22 +579,30 @@ class WagtailCacheTest(TestCase):
     @override_settings(WAGTAIL_CACHE=True)
     def test_enable_wagtailcache(self):
         # Intentionally enable wagtail-cache, make sure it works.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNotNone(response.get(self.header_name, None))
 
     @override_settings(WAGTAIL_CACHE=False)
     def test_disable_wagtailcache(self):
         # Intentionally disable wagtail-cache, make sure it is inactive.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
 
     @override_settings(WAGTAIL_CACHE_BACKEND="zero")
     def test_zero_timeout(self):
         # Wagtail-cache should ignore the page when a timeout is zero.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
         # Second should also not cache.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
         # Load admin panel to render the zero timeout.
         self.test_admin()
@@ -618,7 +636,7 @@ class WagtailCacheTest(TestCase):
     def test_timeout_jitter(self):
         # Wagtail-cache should apply jitter to the timeout.
         url = self.page_cachedpage.get_url()
-        self.client.get(url)
+        self.client.get(url, **self.client_headers)
         time.sleep(1.5)
         self.get_hit(url)
 
@@ -626,11 +644,15 @@ class WagtailCacheTest(TestCase):
 
     def test_request_hook_true(self):
         # A POST should never be cached.
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -642,11 +664,15 @@ class WagtailCacheTest(TestCase):
         # the response still has the final say in whether or not the response is
         # cached. However a simple POST request where the response does not
         # forbid caching will in fact get cached!
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
 
     def test_request_hook_false(self):
