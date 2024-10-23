@@ -137,3 +137,27 @@ of those items may be deleted.
 If the delete process is too slow, then you can change this setting to use
 Django's ``QuerySet._raw_delete`` method. That runs significantly faster than
 ``QuerySet.delete`` but it means that signals are not sent during that process.
+
+
+WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC
+---------------------------------
+
+.. versionadded::
+
+   An optional function that will be called to adjust the cache timeout each
+   time a cache item is set. Set to None by default.
+
+This can be used to add a random jitter to the cache timeout to avoid cache
+stampedes.
+
+The function should take the timeout as an argument and return a new
+timeout. For example, to add a random jitter of up to 10% to the timeout:
+
+.. code-block:: python
+
+    import random
+
+    def jitter_timeout(timeout):
+        return timeout * random.uniform(0.9, 1.1)
+
+    WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC = jitter_timeout
