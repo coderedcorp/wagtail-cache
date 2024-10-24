@@ -295,9 +295,11 @@ class WagtailCacheTest(TestCase):
             # A get with both should also hit, since it is the second request.
             self.head_hit(page.get_url() + "?valid=0&utm_code=0")
             self.get_hit(page.get_url() + "?valid=0&utm_code=0")
-            # A get with a very long querysting should return an error
-            self.head_error(page.get_url() + "?" + "a" * 2000)
-            self.get_error(page.get_url() + "?" + "a" * 2000)
+            # A get with a very long querysting should be cached.
+            self.head_miss(page.get_url() + "?" + "a" * 2000)
+            self.get_miss(page.get_url() + "?" + "a" * 2000)
+            self.head_hit(page.get_url() + "?" + "a" * 2000)
+            self.get_hit(page.get_url() + "?" + "a" * 2000)
 
     @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=False)
     def test_cookie_page(self):

@@ -90,7 +90,7 @@ class KeyringItem(models.Model):
 
     expiry = models.DateTimeField()
     key = models.CharField(max_length=512)
-    url = models.URLField(max_length=1000)
+    url = models.TextField()
 
     objects = KeyringItemManager()
 
