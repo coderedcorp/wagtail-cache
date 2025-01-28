@@ -337,15 +337,19 @@ class UpdateCacheMiddleware(MiddlewareMixin):
                 # (of the chopped request, not the real one).
                 cr = _chop_querystring(request)
                 uri = unquote(cr.build_absolute_uri())
-                keyring = self._wagcache.get("keyring", {})
-                # Get current cache keys belonging to this URI.
-                # This should be a list of keys.
-                uri_keys: List[str] = keyring.get(uri, [])
-                # Append the key to this list if not already present and save.
-                if cache_key not in uri_keys:
-                    uri_keys.append(cache_key)
-                    keyring[uri] = uri_keys
-                    self._wagcache.set("keyring", keyring)
+
+                if wagtailcache_settings.WAGTAIL_CACHE_KEYRING:
+                    keyring = self._wagcache.get("keyring", {})
+                    # Get current cache keys belonging to this URI.
+                    # This should be a list of keys.
+                    uri_keys: List[str] = keyring.get(uri, [])
+                    limit = wagtailcache_settings.WAGTAIL_CACHE_KEYRING_LIMIT
+                    # Append the key to this list if not already present and save.
+                    if cache_key not in uri_keys and len(keyring) < limit:
+                        uri_keys.append(cache_key)
+                        keyring[uri] = uri_keys
+                        self._wagcache.set("keyring", keyring)
+
                 if isinstance(response, SimpleTemplateResponse):
 
                     def callback(r):
@@ -376,7 +380,7 @@ def clear_cache(urls: List[str] = []) -> None:
         return
 
     _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-    if urls and "keyring" in _wagcache:
+    if urls and wagtailcache_settings.WAGTAIL_CACHE_KEYRING and "keyring" in _wagcache:
         keyring = _wagcache.get("keyring")
         # Check the provided URL matches a key in our keyring.
         matched_urls = []

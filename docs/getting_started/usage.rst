@@ -52,6 +52,8 @@ publishing a page. To accomplish this, use a Wagtail hook as so
 Purge specific URLs
 -------------------
 
+Requires ``WAGTAIL_CACHE_KEYRING=True``
+
 Sometimes you only want to delete specific pages in the cache automatically
 after publishing a page. To achieve this, use a Wagtail hook as follows
 

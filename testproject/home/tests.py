@@ -508,6 +508,7 @@ class WagtailCacheTest(TestCase):
 
     # ---- PURGE SPECIFIC URLS & CLEAR ALL--------------------------------------
 
+    @override_settings(WAGTAIL_CACHE_KEYRING=True)
     def test_cache_keyring(self):
         # Check if keyring is not present
         self.assertEqual(self.cache.get("keyring"), None)
@@ -519,7 +520,9 @@ class WagtailCacheTest(TestCase):
         # Compare Keys
         self.assertEqual(key, url)
 
-    @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
+    @override_settings(
+        WAGTAIL_CACHE_BACKEND="one_second",
+        WAGTAIL_CACHE_KEYRING=True)
     def test_cache_keyring_no_uri_key_duplication(self):
         # First get to populate keyring
         self.get_miss(self.page_cachedpage.get_url())
@@ -536,6 +539,17 @@ class WagtailCacheTest(TestCase):
         keyring = self.cache.get("keyring")
         self.assertEqual(len(keyring.get(url, [])), 1)
 
+    @override_settings(
+        WAGTAIL_CACHE_KEYRING=True,
+        WAGTAIL_CACHE_KEYRING_LIMIT=4)
+    def test_cache_keyring_limit(self):
+        for i in range(1, 6):
+            self.get_miss(self.page_cachedpage.get_url() + f"?{i}")
+            keyring = self.cache.get("keyring")
+            self.assertLessEqual(len(keyring), 4)
+            if i <= 4:
+                self.assertEqual(len(keyring), i)
+
     def test_clear_cache(self):
         # First get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
@@ -546,6 +560,7 @@ class WagtailCacheTest(TestCase):
         # Now the page should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
 
+    @override_settings(WAGTAIL_CACHE_KEYRING=True)
     def test_clear_cache_url(self):
         u1 = self.page_cachedpage.get_url()
         u2 = self.page_cachedpage.get_url() + "?action=pytest"
