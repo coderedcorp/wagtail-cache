@@ -528,8 +528,8 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(key, url)
 
     @override_settings(
-        WAGTAIL_CACHE_BACKEND="one_second",
-        WAGTAIL_CACHE_KEYRING=True)
+        WAGTAIL_CACHE_BACKEND="one_second", WAGTAIL_CACHE_KEYRING=True
+    )
     def test_cache_keyring_no_uri_key_duplication(self):
         # First get to populate keyring
         self.get_miss(self.page_cachedpage.get_url())
@@ -547,8 +547,8 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(len(keyring.get(url, [])), 1)
 
     @override_settings(
-        WAGTAIL_CACHE_KEYRING=True,
-        WAGTAIL_CACHE_KEYRING_LIMIT=4)
+        WAGTAIL_CACHE_KEYRING=True, WAGTAIL_CACHE_KEYRING_LIMIT=4
+    )
     def test_cache_keyring_limit(self):
         for i in range(1, 6):
             self.get_miss(self.page_cachedpage.get_url() + f"?{i}")
@@ -558,8 +558,8 @@ class WagtailCacheTest(TestCase):
                 self.assertEqual(len(keyring), i)
 
     @override_settings(
-        WAGTAIL_CACHE_KEYRING=True,
-        WAGTAIL_CACHE_KEYRING_LIMIT=None)
+        WAGTAIL_CACHE_KEYRING=True, WAGTAIL_CACHE_KEYRING_LIMIT=None
+    )
     def test_cache_keyring_no_limit(self):
         for i in range(1, 6):
             self.get_miss(self.page_cachedpage.get_url() + f"?{i}")

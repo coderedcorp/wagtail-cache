@@ -384,7 +384,11 @@ def clear_cache(urls: List[str] = []) -> None:
         return
 
     _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-    if urls and wagtailcache_settings.WAGTAIL_CACHE_KEYRING and "keyring" in _wagcache:
+    if (
+        urls
+        and wagtailcache_settings.WAGTAIL_CACHE_KEYRING
+        and "keyring" in _wagcache
+    ):
         keyring = _wagcache.get("keyring")
         # Check the provided URL matches a key in our keyring.
         matched_urls = []
