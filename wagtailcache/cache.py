@@ -340,15 +340,19 @@ class UpdateCacheMiddleware(MiddlewareMixin):
 
                 if wagtailcache_settings.WAGTAIL_CACHE_KEYRING:
                     keyring = self._wagcache.get("keyring", {})
-                    # Get current cache keys belonging to this URI.
-                    # This should be a list of keys.
-                    uri_keys: List[str] = keyring.get(uri, [])
                     limit = wagtailcache_settings.WAGTAIL_CACHE_KEYRING_LIMIT
-                    # Append the key to this list if not already present and save.
-                    if cache_key not in uri_keys and len(keyring) < limit:
-                        uri_keys.append(cache_key)
-                        keyring[uri] = uri_keys
-                        self._wagcache.set("keyring", keyring)
+                    if limit is None or len(keyring) < limit:
+                        # Get current cache keys belonging to this URI.
+                        # This should be a list of keys.
+                        uri_keys: List[str] = keyring.get(uri, [])
+                        # Append the key to this list if not already present and save.
+                        if cache_key not in uri_keys:
+                            uri_keys.append(cache_key)
+                            keyring[uri] = uri_keys
+                            self._wagcache.set("keyring", keyring)
+
+                for fn in hooks.get_hooks("wagtailcache_cache_key"):
+                    fn(cache_key, uri, request, response)
 
                 if isinstance(response, SimpleTemplateResponse):
 

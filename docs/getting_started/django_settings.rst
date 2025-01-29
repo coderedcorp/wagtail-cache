@@ -113,5 +113,7 @@ WAGTAIL_CACHE_KEYRING_LIMIT
 
 .. versionadded:: 2.5.2
 
-If keyring is enabled, limit the number of keys.
+If keyring is enabled, limit the number of keys. Warning: If set to None, there
+is no limit, which may slow down every request if the keyring is large, or hit
+limits of the backend.
 

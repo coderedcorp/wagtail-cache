@@ -86,3 +86,17 @@ During a request/response cycle, wagtail-cache makes its caching decision as so:
    ``True``.
 #. Save the response into the cache for next time.
 #. Finally, return the response.
+
+
+wagtailcache_cache_key
+----------------------
+
+To keep track of cache_keys, at the point a response is going to be added to the cache.
+
+For example:
+
+.. code-block:: python
+
+    @hooks.register("wagtailcache_cache_key")
+    def hook_wagtailcache_cache_key(cache_key, uri, request, response):
+        hooked_cache_keys.add(cache_key)
