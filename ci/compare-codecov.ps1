@@ -39,30 +39,28 @@ $ApiBase = "https://dev.azure.com/$org/$project"
 
 # ---- GET CODE COVERAGE FROM RECENT BUILD -------------------------------------
 
-Write-Host "hi test1"
+$mainBuildUrl = "$ApiBase/_apis/build/builds?api-version=5.1"
+Write-Host "mainBuildUrl: $mainBuildUrl"
 
 # Get list of all recent builds.
 $mainBuildJson = (
-    Invoke-WebRequest "$ApiBase/_apis/build/builds?branchName=refs/heads/main&api-version=5.1"
+    Invoke-WebRequest "$mainBuildUrl"
 ).Content | ConvertFrom-Json
 
 # Get the latest matching build ID from the list of builds.
 foreach ($build in $mainBuildJson.value) {
-    $tmp1 = $build.definition.project.name
-    $tmp2 = $build.definition.name
-    Write-Host "tmp1: $tmp1 tmp2: $tmp2"
-    if ($build.definition.project.name -eq $pipeline_name) {
+    if ($build.definition.name -eq $pipeline_name) {
         $mainLatestId = $build.id
         break
     }
 }
 
-Write-Host "mainLatestId: $mainLatestId"
-Write-Host "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1-preview.1"
+$mainCoverageUrl = "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1"
+Write-Host "mainCoverageUrl: $mainCoverageUrl"
 
 # Retrieve code coverage for this build ID.
 $mainCoverageJson = (
-    Invoke-WebRequest "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1-preview.1"
+    Invoke-WebRequest $mainCoverageUrl
 ).Content | ConvertFrom-Json
 foreach ($cov in $mainCoverageJson.coverageData.coverageStats) {
     if ($cov.label -eq "Lines") {
