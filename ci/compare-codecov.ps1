@@ -47,7 +47,7 @@ $mainBuildJson = (
 
 # Get the latest matching build ID from the list of builds.
 foreach ($build in $mainBuildJson.value) {
-    if ($build.definition.name -eq $pipeline_name) {
+    if ($build.definition.project.name -eq $pipeline_name) {
         $mainLatestId = $build.id
         break
     }
