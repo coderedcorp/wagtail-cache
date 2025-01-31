@@ -39,6 +39,7 @@ $ApiBase = "https://dev.azure.com/$org/$project"
 
 # ---- GET CODE COVERAGE FROM RECENT BUILD -------------------------------------
 
+Write-Host "hi test1"
 
 # Get list of all recent builds.
 $mainBuildJson = (
@@ -47,11 +48,17 @@ $mainBuildJson = (
 
 # Get the latest matching build ID from the list of builds.
 foreach ($build in $mainBuildJson.value) {
+    $tmp1 = $build.definition.project.name
+    $tmp2 = $build.definition.name
+    Write-Host "tmp1: $tmp1 tmp2: $tmp2"
     if ($build.definition.project.name -eq $pipeline_name) {
         $mainLatestId = $build.id
         break
     }
 }
+
+Write-Host "mainLatestId: $mainLatestId"
+Write-Host "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1-preview.1"
 
 # Retrieve code coverage for this build ID.
 $mainCoverageJson = (
