@@ -39,7 +39,7 @@ $ApiBase = "https://dev.azure.com/$org/$project"
 
 # ---- GET CODE COVERAGE FROM RECENT BUILD -------------------------------------
 
-$mainBuildUrl = "$ApiBase/_apis/build/builds?api-version=5.1"
+$mainBuildUrl = "$ApiBase/_apis/build/builds?branchName=refs/heads/main&api-version=5.1"
 Write-Host "mainBuildUrl: $mainBuildUrl"
 
 # Get list of all recent builds.
@@ -57,6 +57,11 @@ foreach ($build in $mainBuildJson.value) {
 
 $mainCoverageUrl = "$ApiBase/_apis/test/codecoverage?buildId=$mainLatestId&flags=7&api-version=7.1"
 Write-Host "mainCoverageUrl: $mainCoverageUrl"
+
+if($mainLatestId -eq $null) {
+    Write-Host "No main coverage, build may have been cleaned up"
+    exit 0
+}
 
 # Retrieve code coverage for this build ID.
 $mainCoverageJson = (
