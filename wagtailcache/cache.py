@@ -116,11 +116,11 @@ def _chop_cookies(r: WSGIRequest) -> WSGIRequest:
     if not wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES:
         return r
 
-    if r.COOKIES and not (
-        settings.CSRF_COOKIE_NAME in r.COOKIES
-        or settings.SESSION_COOKIE_NAME in r.COOKIES
-    ):
-        r.COOKIES = {}
+    r.COOKIES = {k: v for k, v in r.COOKIES.items() if k in {
+        settings.CSRF_COOKIE_NAME,
+        settings.SESSION_COOKIE_NAME,
+    }}
+    r.META["HTTP_COOKIE"] = "; ".join(f"{k}={v}" for k, v in r.COOKIES.items())
     return r
 
 

@@ -1,5 +1,6 @@
 import time
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import caches
@@ -142,7 +143,7 @@ class WagtailCacheTest(TestCase):
         HEAD a page and test that it was served from the cache.
         """
         response = self.client.head(url)
-        self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
+        self.assertEqual(Status.HIT.value, response.get(self.header_name, None))
         return response
 
     def get_hit(self, url: str):
@@ -150,7 +151,7 @@ class WagtailCacheTest(TestCase):
         Gets a page and tests that it was served from the cache.
         """
         response = self.client.get(url)
-        self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
+        self.assertEqual(Status.HIT.value, response.get(self.header_name, None))
         return response
 
     def head_miss(self, url: str):
@@ -159,7 +160,7 @@ class WagtailCacheTest(TestCase):
         """
         response = self.client.head(url)
         self.assertEqual(
-            response.get(self.header_name, None), Status.MISS.value
+            Status.MISS.value, response.get(self.header_name, None)
         )
 
     def get_miss(self, url: str):
@@ -168,7 +169,7 @@ class WagtailCacheTest(TestCase):
         """
         response = self.client.get(url)
         self.assertEqual(
-            response.get(self.header_name, None), Status.MISS.value
+            Status.MISS.value, response.get(self.header_name, None)
         )
         return response
 
@@ -179,7 +180,7 @@ class WagtailCacheTest(TestCase):
         """
         response = self.client.head(url)
         self.assertEqual(
-            response.get(self.header_name, None), Status.SKIP.value
+            Status.SKIP.value, response.get(self.header_name, None)
         )
         self.assertTrue(
             CacheControl.NOCACHE.value in response.get("Cache-Control", "")
@@ -193,7 +194,7 @@ class WagtailCacheTest(TestCase):
         """
         response = self.client.get(url)
         self.assertEqual(
-            response.get(self.header_name, None), Status.SKIP.value
+            Status.SKIP.value, response.get(self.header_name, None)
         )
         self.assertTrue(
             CacheControl.NOCACHE.value in response.get("Cache-Control", "")
@@ -208,7 +209,7 @@ class WagtailCacheTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.get(self.header_name, None), Status.ERROR.value
+            Status.ERROR.value, response.get(self.header_name, None)
         )
         return response
 
@@ -219,7 +220,7 @@ class WagtailCacheTest(TestCase):
         response = self.client.head(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.get(self.header_name, None), Status.ERROR.value
+            Status.ERROR.value, response.get(self.header_name, None)
         )
         return response
 
@@ -230,7 +231,7 @@ class WagtailCacheTest(TestCase):
         """
         response = self.client.post(url)
         self.assertEqual(
-            response.get(self.header_name, None), Status.SKIP.value
+            Status.SKIP.value, response.get(self.header_name, None)
         )
         self.assertTrue(
             CacheControl.NOCACHE.value in response.get("Cache-Control", "")
@@ -358,6 +359,28 @@ class WagtailCacheTest(TestCase):
         self.client.cookies["annoying_tracker"] = "we see all"
         self.get_hit(self.page_cachedpage.get_url())
         # A get with different cookies should also hit.
+        self.client.cookies["_dataminer"] = "precious data"
+        self.get_hit(self.page_cachedpage.get_url())
+
+    @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=True)
+    def test_keep_django_cookies_and_ignore_others(self):
+        # Test that we can vary our response based on Django native cookies
+        # (CSRF, Session) and hit cache when these have the same values,
+        # regardless of other (tracking) cookies
+
+        # First we visit a page that sets the CSRF cookie
+        self.get_skip(self.page_csrfpage.get_url())
+        # Then we visit another page, and expect a miss first time
+        self.get_miss(self.page_cachedpage.get_url())
+        # We now set an irrelevant cookie
+        self.client.cookies["annoying_tracker"] = "we see all"
+        # Third request should still hit from the cache, regardless of new cookie
+        response = self.get_hit(self.page_cachedpage.get_url())
+        # But request should still keep the CSRF Cookie
+        self.assertTrue(settings.CSRF_COOKIE_NAME in response.wsgi_request.COOKIES)
+        # But no other cookies
+        self.assertEqual(1, len(response.wsgi_request.COOKIES))
+        # Next add another tracking cookie and check that we still get a hit
         self.client.cookies["_dataminer"] = "precious data"
         self.get_hit(self.page_cachedpage.get_url())
 
