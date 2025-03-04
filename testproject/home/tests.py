@@ -377,7 +377,9 @@ class WagtailCacheTest(TestCase):
         # Third request should still hit from the cache, regardless of new cookie
         response = self.get_hit(self.page_cachedpage.get_url())
         # But request should still keep the CSRF Cookie
-        self.assertTrue(settings.CSRF_COOKIE_NAME in response.wsgi_request.COOKIES)
+        self.assertTrue(
+            settings.CSRF_COOKIE_NAME in response.wsgi_request.COOKIES
+        )
         # But no other cookies
         self.assertEqual(1, len(response.wsgi_request.COOKIES))
         # Next add another tracking cookie and check that we still get a hit
