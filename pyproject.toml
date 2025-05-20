@@ -21,9 +21,10 @@ classifiers = [
     "Framework :: Wagtail :: 4",
     "Framework :: Wagtail :: 5",
     "Framework :: Wagtail :: 6",
+    "Framework :: Wagtail :: 7",
 ]
 dependencies = [
-    "wagtail>=3.0,<7",
+    "wagtail>=3.0,<7.1",
 ]
 description = "A simple page cache for Wagtail based on the Django cache middleware."
 dynamic = ["version"]
