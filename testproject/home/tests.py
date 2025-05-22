@@ -387,14 +387,15 @@ class WagtailCacheTest(TestCase):
         # First get should skip cache, and also be set to private.
         response = self.get_skip(self.page_cachedpage_restricted.get_url())
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.get("Cache-Control", None), CacheControl.PRIVATE.value
+        # Check that Cache-Control starts with 'private' (may have additional directives in Wagtail 6.4+)
+        self.assertTrue(
+            response.get("Cache-Control", None).startswith(CacheControl.PRIVATE.value)
         )
         # Second get should continue to skip and also be set to private.
         response = self.get_skip(self.page_cachedpage_restricted.get_url())
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.get("Cache-Control", None), CacheControl.PRIVATE.value
+        self.assertTrue(
+            response.get("Cache-Control", None).startswith(CacheControl.PRIVATE.value)
         )
 
     def test_page_404(self):
