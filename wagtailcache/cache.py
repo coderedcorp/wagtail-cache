@@ -116,16 +116,17 @@ def _chop_cookies(r: WSGIRequest) -> WSGIRequest:
     if not wagtailcache_settings.WAGTAIL_CACHE_IGNORE_COOKIES:
         return r
 
-    r.COOKIES = {
-        k: v
-        for k, v in r.COOKIES.items()
-        if k
-        in {
+    chopped_cookies = {}
+    meta_cookies = []
+    for k, v in r.COOKIES.items():
+        if k in {
             settings.CSRF_COOKIE_NAME,
             settings.SESSION_COOKIE_NAME,
-        }
-    }
-    r.META["HTTP_COOKIE"] = "; ".join(f"{k}={v}" for k, v in r.COOKIES.items())
+        }:
+            chopped_cookies[k] = v
+            meta_cookies.append(f"{k}={v}")
+    r.COOKIES = chopped_cookies
+    r.META["HTTP_COOKIE"] = "; ".join(meta_cookies)
     return r
 
 
