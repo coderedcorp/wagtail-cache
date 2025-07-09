@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from django.contrib.auth.models import User
@@ -7,6 +8,7 @@ from django.test import TestCase
 from django.test import modify_settings
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.timezone import now
 from wagtail import hooks
 from wagtail.models import PageViewRestriction
 
@@ -19,7 +21,9 @@ from home.models import WagtailPage
 from wagtailcache.cache import CacheControl
 from wagtailcache.cache import Status
 from wagtailcache.cache import clear_cache
+from wagtailcache.models import KeyringItem
 from wagtailcache.settings import wagtailcache_settings
+from wagtailcache.utils import batched
 
 
 def hook_true(obj, is_cacheable: bool) -> bool:
@@ -35,6 +39,9 @@ def hook_any(obj, is_cacheable: bool):
 
 
 class WagtailCacheTest(TestCase):
+    # Django's default `testserver` is not a valid domain name.
+    client_headers = {"SERVER_NAME": "example.com"}
+
     @classmethod
     def get_content_type(cls, modelname: str):
         ctype, _ = ContentType.objects.get_or_create(
@@ -141,7 +148,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and test that it was served from the cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
         return response
 
@@ -149,7 +156,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that it was served from the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
         return response
 
@@ -157,7 +164,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and test that it was not served from the cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
@@ -166,7 +173,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that it was not served from the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
@@ -177,7 +184,7 @@ class WagtailCacheTest(TestCase):
         HEAD a page and test that it was intentionally not served from the
         cache.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -191,7 +198,7 @@ class WagtailCacheTest(TestCase):
         Gets a page and tests that it was intentionally not served from
         the cache.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -205,7 +212,7 @@ class WagtailCacheTest(TestCase):
         """
         Gets a page and tests that an error in the cache backend was handled.
         """
-        response = self.client.get(url)
+        response = self.client.get(url, **self.client_headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get(self.header_name, None), Status.ERROR.value
@@ -216,7 +223,7 @@ class WagtailCacheTest(TestCase):
         """
         HEAD a page and tests that an error in the cache backend was handled.
         """
-        response = self.client.head(url)
+        response = self.client.head(url, **self.client_headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.get(self.header_name, None), Status.ERROR.value
@@ -228,7 +235,7 @@ class WagtailCacheTest(TestCase):
         POSTS a page and tests that it was intentionally not served from
         the cache.
         """
-        response = self.client.post(url)
+        response = self.client.post(url, **self.client_headers)
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -288,6 +295,11 @@ class WagtailCacheTest(TestCase):
             # A get with both should also hit, since it is the second request.
             self.head_hit(page.get_url() + "?valid=0&utm_code=0")
             self.get_hit(page.get_url() + "?valid=0&utm_code=0")
+            # A get with a very long querysting should be cached.
+            self.head_miss(page.get_url() + "?" + "a" * 2000)
+            self.get_miss(page.get_url() + "?" + "a" * 2000)
+            self.head_hit(page.get_url() + "?" + "a" * 2000)
+            self.get_hit(page.get_url() + "?" + "a" * 2000)
 
     @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=False)
     def test_cookie_page(self):
@@ -380,6 +392,7 @@ class WagtailCacheTest(TestCase):
                 "password": "the cybers",
                 "return_url": self.page_cachedpage_restricted.get_url(),
             },
+            **self.client_headers,
         )
         self.assertRedirects(
             response, self.page_cachedpage_restricted.get_url()
@@ -494,7 +507,9 @@ class WagtailCacheTest(TestCase):
 
     def test_admin(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse("wagtailcache:index"))
+        response = self.client.get(
+            reverse("wagtailcache:index"), **self.client_headers
+        )
         self.client.logout()
         self.assertEqual(response.status_code, 200)
 
@@ -505,7 +520,9 @@ class WagtailCacheTest(TestCase):
         self.get_hit(self.page_cachedpage.get_url())
         # Now log in as admin and clear the cache.
         self.client.force_login(self.user)
-        response = self.client.get(reverse("wagtailcache:clearcache"))
+        response = self.client.get(
+            reverse("wagtailcache:clearcache"), **self.client_headers
+        )
         self.client.logout()
         self.assertEqual(response.status_code, 302)
         # Now the page should miss cache.
@@ -515,33 +532,28 @@ class WagtailCacheTest(TestCase):
 
     def test_cache_keyring(self):
         # Check if keyring is not present
-        self.assertEqual(self.cache.get("keyring"), None)
+        self.assertEqual(KeyringItem.objects.count(), 0)
         # Get should hit cache.
         self.get_miss(self.page_cachedpage.get_url())
+        self.assertEqual(KeyringItem.objects.count(), 1)
         # Get first key from keyring
-        key = next(iter(self.cache.get("keyring")))
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        url = "http://%s%s" % ("example.com", self.page_cachedpage.get_url())
+        keyring_item = KeyringItem.objects.active_for_url_regexes(url).first()
         # Compare Keys
-        self.assertEqual(key, url)
-
-    @override_settings(WAGTAIL_CACHE_BACKEND="one_second")
-    def test_cache_keyring_no_uri_key_duplication(self):
-        # First get to populate keyring
-        self.get_miss(self.page_cachedpage.get_url())
-        # Wait a short time
-        time.sleep(0.5)
-        # Fetch a different page
-        self.get_miss(self.page_wagtailpage.get_url())
-        # Wait until the first page is expired, but not the keyring
-        time.sleep(0.6)
-        # Fetch the first page again
-        self.get_miss(self.page_cachedpage.get_url())
-        # Check the keyring does not contain duplicate uri_keys
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
-        keyring = self.cache.get("keyring")
-        self.assertEqual(len(keyring.get(url, [])), 1)
+        self.assertEqual(keyring_item.url, url)
 
     def test_clear_cache(self):
+        # First get should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+        # Second get should hit cache.
+        self.get_hit(self.page_cachedpage.get_url())
+        # clear all from Cache
+        clear_cache()
+        # Now the page should miss cache.
+        self.get_miss(self.page_cachedpage.get_url())
+
+    @override_settings(WAGTAIL_CACHE_USE_RAW_DELETE=True)
+    def test_clear_cache_raw_delete(self):
         # First get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
         # Second get should hit cache.
@@ -575,22 +587,30 @@ class WagtailCacheTest(TestCase):
     @override_settings(WAGTAIL_CACHE=True)
     def test_enable_wagtailcache(self):
         # Intentionally enable wagtail-cache, make sure it works.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNotNone(response.get(self.header_name, None))
 
     @override_settings(WAGTAIL_CACHE=False)
     def test_disable_wagtailcache(self):
         # Intentionally disable wagtail-cache, make sure it is inactive.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
 
     @override_settings(WAGTAIL_CACHE_BACKEND="zero")
     def test_zero_timeout(self):
         # Wagtail-cache should ignore the page when a timeout is zero.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
         # Second should also not cache.
-        response = self.client.get(self.page_cachedpage.get_url())
+        response = self.client.get(
+            self.page_cachedpage.get_url(), **self.client_headers
+        )
         self.assertIsNone(response.get(self.header_name, None))
         # Load admin panel to render the zero timeout.
         self.test_admin()
@@ -617,15 +637,30 @@ class WagtailCacheTest(TestCase):
             self.head_error(page.get_url())
             self.get_error(page.get_url())
 
+    @override_settings(
+        WAGTAIL_CACHE_BACKEND="one_second",
+        WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC=lambda timeout: timeout * 2,
+    )
+    def test_timeout_jitter(self):
+        # Wagtail-cache should apply jitter to the timeout.
+        url = self.page_cachedpage.get_url()
+        self.client.get(url, **self.client_headers)
+        time.sleep(1.5)
+        self.get_hit(url)
+
     # ---- HOOKS ---------------------------------------------------------------
 
     def test_request_hook_true(self):
         # A POST should never be cached.
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.SKIP.value
         )
@@ -637,11 +672,15 @@ class WagtailCacheTest(TestCase):
         # the response still has the final say in whether or not the response is
         # cached. However a simple POST request where the response does not
         # forbid caching will in fact get cached!
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(
             response.get(self.header_name, None), Status.MISS.value
         )
-        response = self.client.post(reverse("cached_view"))
+        response = self.client.post(
+            reverse("cached_view"), **self.client_headers
+        )
         self.assertEqual(response.get(self.header_name, None), Status.HIT.value)
 
     def test_request_hook_false(self):
@@ -689,3 +728,201 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(hook_fns, [hook_any])
         # The page should be cached normally due to hook returning garbage.
         self.test_page_hit()
+
+    # ---- MODELS --------------------------------------------------------------
+    def test_keyring_update_or_create(self):
+        expiry = now() + datetime.timedelta(hours=1)
+        key = "abc123"
+        url = "https://example.com/"
+
+        KeyringItem.objects.set(
+            expiry=expiry,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().url, url)
+
+        expiry2 = now() + datetime.timedelta(hours=1)
+        KeyringItem.objects.set(
+            expiry=expiry2,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        self.assertEqual(KeyringItem.objects.first().expiry, expiry2)
+
+    def test_keyring_update_or_create__long_url(self):
+        expiry = now() + datetime.timedelta(hours=1)
+        key = "abc123"
+        url = f"https://example.com/?query={ 'a' * 900 }"
+
+        KeyringItem.objects.set(
+            expiry=expiry,
+            key=key,
+            url=url,
+        )
+        self.assertEqual(KeyringItem.objects.count(), 1)
+
+    def test_delete_expired(self):
+        """
+        Cache items expire by themselves, so we only need to actively
+        delete database items
+        """
+        expiry1 = now() + datetime.timedelta(seconds=1)
+        expiry2 = now() + datetime.timedelta(seconds=2)
+        used_keys = []
+
+        for exp in [expiry1, expiry2]:
+            exp_iso = exp.isoformat()
+            key = f"key-{exp_iso}"
+            url = f"https://example.com/{exp_iso}"
+            KeyringItem.objects.set(
+                expiry=exp,
+                key=key,
+                url=url,
+            )
+            # Item should not expire
+            self.cache.set(key, url, 100)
+            used_keys.append(key)
+        self.assertEqual(KeyringItem.objects.count(), 2)
+        time.sleep(1)
+        KeyringItem.objects.clear_expired()
+        self.assertEqual(KeyringItem.objects.count(), 1)
+        # Cache items remain
+        for key in used_keys:
+            self.assertTrue(self.cache.get(key))
+
+    @override_settings(WAGTAIL_CACHE_BATCH_SIZE=2)
+    def test_bulk_delete(self):
+        """
+        Bulk delete removes cache items and database items that refer to them
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(
+            KeyringItem.objects.filter(key__in=keys[:4])
+        )
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
+    @override_settings(WAGTAIL_CACHE_USE_RAW_DELETE=True)
+    def test_bulk_delete_raw_delete(self):
+        """
+        You can optionally use Django's `_raw_delete`
+        for speed with many cache keys.
+        """
+        timeout = 10
+        expiry = now() + datetime.timedelta(seconds=timeout)
+        keys = [f"key-{counter}" for counter in range(8)]
+
+        for key in keys:
+            url = "https://example.com/"
+            KeyringItem.objects.set(
+                expiry=expiry,
+                key=key,
+                url=url,
+            )
+            self.cache.set(key, url, timeout)
+
+        KeyringItem.objects.bulk_delete_cache_keys(
+            KeyringItem.objects.filter(key__in=keys[:4])
+        )
+
+        for key in keys[:4]:
+            self.assertFalse(KeyringItem.objects.filter(key=key).exists())
+            self.assertFalse(self.cache.get(key))
+
+        for key in keys[4:]:
+            self.assertTrue(KeyringItem.objects.filter(key=key).exists())
+            self.assertTrue(self.cache.get(key))
+
+    def test_active_for_url_regexes(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=f"{url}/key-3/",
+        )
+        self.assertEqual(
+            KeyringItem.objects.active_for_url_regexes([url]).count(), 2
+        )
+
+    def test_active_for_urls_no_regexes(self):
+        past_expiry = now() - datetime.timedelta(seconds=1)
+        future_expiry = now() + datetime.timedelta(seconds=1)
+        url = "https://example.com"
+        url2 = "https://test.example.com"
+
+        KeyringItem.objects.set(
+            expiry=past_expiry,
+            key="key",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-3",
+            url=url2,
+        )
+        self.assertEqual(
+            KeyringItem.objects.active_for_url_regexes([]).count(), 2
+        )
+
+    def test_keyringitem_str(self):
+        future_expiry = datetime.datetime(year=2030, month=1, day=1)
+        url = "https://example.com"
+
+        KeyringItem.objects.set(
+            expiry=future_expiry,
+            key="key-2",
+            url=url,
+        )
+        self.assertEqual(
+            str(KeyringItem.objects.first()),
+            "https://example.com -> key-2 (Expires: 2030-01-01 00:00:00+00:00)",
+        )
+
+    def test_batched(self):
+        self.assertEqual(
+            [batch for batch in batched("ABCDEFG", 3)],
+            [("A", "B", "C"), ("D", "E", "F"), ("G",)],
+        )
+
+    def test_batched_invalid_batch_size(self):
+        with self.assertRaises(ValueError):
+            next(batched("ABCDEFG", 0))

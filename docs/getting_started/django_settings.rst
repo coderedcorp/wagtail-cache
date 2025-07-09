@@ -100,3 +100,64 @@ own unique page in the cache, set this value to ``None`` or ``[]``.
 If you feel as though the spammers have won, and want the nuclear option, you
 can set this to ``[r".*"]`` which will ignore all querystrings. This is surely
 a terrible idea, but it can be done.
+
+
+.. _WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET:
+
+WAGTAIL_CACHE_CLEAR_EXPIRED_ON_SET
+----------------------------------
+
+.. versionadded::
+
+   This setting will clear any expired `KeyringItems` as a new item is set,
+   and is OFF by default.
+
+If set to `True`, as a cache item is set the manager will delete any expired
+items from the database. If there are likely to be many expired items in the
+cache, then that might be time-consuming so this setting can be turned off.
+You can use the Django management command `wagtail_cache_clear_expired_items`
+periodically to clear expired items instead.
+
+
+.. _WAGTAIL_CACHE_USE_RAW_DELETE:
+
+WAGTAIL_CACHE_USE_RAW_DELETE
+----------------------------
+
+.. versionadded:: 2.3.0
+
+   This setting will use Django's ``QuerySet._raw_delete`` method to clear
+   KeyringItems from the database. This is fast but means that signals are not
+   sent during that process. This is OFF by default.
+
+If your cache is large, then there can be many ``KeyringItem`` objects in the
+database. When you publish a Wagtail page that is high in the tree, many
+of those items may be deleted.
+
+If the delete process is too slow, then you can change this setting to use
+Django's ``QuerySet._raw_delete`` method. That runs significantly faster than
+``QuerySet.delete`` but it means that signals are not sent during that process.
+
+
+WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC
+---------------------------------
+
+.. versionadded::
+
+   An optional function that will be called to adjust the cache timeout each
+   time a cache item is set. Set to None by default.
+
+This can be used to add a random jitter to the cache timeout to avoid cache
+stampedes.
+
+The function should take the timeout as an argument and return a new
+timeout. For example, to add a random jitter of up to 10% to the timeout:
+
+.. code-block:: python
+
+    import random
+
+    def jitter_timeout(timeout):
+        return timeout * random.uniform(0.9, 1.1)
+
+    WAGTAIL_CACHE_TIMEOUT_JITTER_FUNC = jitter_timeout
