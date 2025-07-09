@@ -100,3 +100,14 @@ own unique page in the cache, set this value to ``None`` or ``[]``.
 If you feel as though the spammers have won, and want the nuclear option, you
 can set this to ``[r".*"]`` which will ignore all querystrings. This is surely
 a terrible idea, but it can be done.
+
+WAGTAIL_CACHE_KEYRING
+---------------------
+
+.. versionadded:: 3.0
+
+Set to ``True`` to enable the keyring, which allows you to purge specific URLs. Defaults to ``False``.
+
+.. note::
+
+   Enabling the keyring will reduce the performance of the cache. Only enable this if you need to purge specific URLs before they are set to expire.

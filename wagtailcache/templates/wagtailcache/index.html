@@ -33,25 +33,27 @@
       {% trans "Clear cache" %}
     </a>
   </p>
-  <br>
-  <h2>{% trans "Contents" %}</h2>
-  <p>{% trans "Number of URLs in the cache:" %} <b>{{ keyring|length }}</b></p>
-  <p>
-    {% trans "Below is each URL and the cache key for each response of that URL that is currently in the cache." %}
-    {% trans "Note that 301/302 redirects and 404s may also be cached." %}
-  </p>
-  <ul class="wagcache-pagelist">
-    {% for url, entries in keyring.items %}
-    <li>
-      {{ url }}
-      <ul>
-        {% for entry in entries %}
-        <li>{{ entry }}</li>
-        {% endfor %}
-      </ul>
-    </li>
-    {% endfor %}
-  </ul>
+  {% if 'WAGTAIL_CACHE_KEYRING'|get_wagtailcache_setting %}
+    <br>
+    <h2>{% trans "Contents" %}</h2>
+    <p>{% trans "Number of URLs in the cache:" %} <b>{{ keyring|length }}</b></p>
+    <p>
+      {% trans "Below is each URL and the cache key for each response of that URL that is currently in the cache." %}
+      {% trans "Note that 301/302 redirects and 404s may also be cached." %}
+    </p>
+    <ul class="wagcache-pagelist">
+      {% for url, entries in keyring.items %}
+      <li>
+        {{ url }}
+        <ul>
+          {% for entry in entries %}
+          <li>{{ entry }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
   {% else %}
   <p>
     <b>{% trans "DISABLED" %}</b>

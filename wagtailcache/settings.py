@@ -34,6 +34,7 @@ class _DefaultSettings:
         r"^trk_.*$",  # Listrak
         r"^utm_.*$",  # Google Analytics
     ]
+    WAGTAIL_CACHE_KEYRING = False
 
     def __getattribute__(self, attr: Text):
         # First load from Django settings.
