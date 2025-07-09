@@ -34,13 +34,6 @@ def hook_any(obj, is_cacheable: bool):
     return obj
 
 
-hooked_cache_keys = set()
-
-
-def hook_wagtailcache_cache_key(cache_key, uri, request, response):
-    hooked_cache_keys.add(cache_key)
-
-
 class WagtailCacheTest(TestCase):
     @classmethod
     def get_content_type(cls, modelname: str):
@@ -546,26 +539,6 @@ class WagtailCacheTest(TestCase):
         keyring = self.cache.get("keyring")
         self.assertEqual(len(keyring.get(url, [])), 1)
 
-    @override_settings(
-        WAGTAIL_CACHE_KEYRING=True, WAGTAIL_CACHE_KEYRING_LIMIT=4
-    )
-    def test_cache_keyring_limit(self):
-        for i in range(1, 6):
-            self.get_miss(self.page_cachedpage.get_url() + f"?{i}")
-            keyring = self.cache.get("keyring")
-            self.assertLessEqual(len(keyring), 4)
-            if i <= 4:
-                self.assertEqual(len(keyring), i)
-
-    @override_settings(
-        WAGTAIL_CACHE_KEYRING=True, WAGTAIL_CACHE_KEYRING_LIMIT=None
-    )
-    def test_cache_keyring_no_limit(self):
-        for i in range(1, 6):
-            self.get_miss(self.page_cachedpage.get_url() + f"?{i}")
-            keyring = self.cache.get("keyring")
-            self.assertEqual(len(keyring), i)
-
     def test_clear_cache(self):
         # First get should miss cache.
         self.get_miss(self.page_cachedpage.get_url())
@@ -715,11 +688,3 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(hook_fns, [hook_any])
         # The page should be cached normally due to hook returning garbage.
         self.test_page_hit()
-
-    def test_hook_wagtailcache_cache_key(self):
-        hooks.register("wagtailcache_cache_key", hook_wagtailcache_cache_key)
-        hook_fns = hooks.get_hooks("wagtailcache_cache_key")
-        self.assertEqual(hook_fns, [hook_wagtailcache_cache_key])
-        self.get_miss(self.page_cachedpage.get_url())
-        self.get_hit(self.page_cachedpage.get_url())
-        self.assertEqual(len(hooked_cache_keys), 1)

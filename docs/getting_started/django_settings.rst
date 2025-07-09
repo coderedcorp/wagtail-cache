@@ -104,16 +104,10 @@ a terrible idea, but it can be done.
 WAGTAIL_CACHE_KEYRING
 ---------------------
 
-.. versionadded:: 2.5.2
+.. versionadded:: 3.0
 
-Enable the keyring, which allows you to Purge specific URLs. Defaults to ``False``.
+Set to ``True`` to enable the keyring, which allows you to purge specific URLs. Defaults to ``False``.
 
-WAGTAIL_CACHE_KEYRING_LIMIT
----------------------------
+.. note::
 
-.. versionadded:: 2.5.2
-
-If keyring is enabled, limit the number of keys. Warning: If set to ``None``, there
-is no limit, which may slow down every request if the keyring is large, or hit
-limits of the backend.
-
+   Enabling the keyring will reduce the performance of the cache. Only enable this if you need to purge specific URLs before they are set to expire.

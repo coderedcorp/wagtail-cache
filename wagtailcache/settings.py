@@ -35,7 +35,6 @@ class _DefaultSettings:
         r"^utm_.*$",  # Google Analytics
     ]
     WAGTAIL_CACHE_KEYRING = False
-    WAGTAIL_CACHE_KEYRING_LIMIT = 1000
 
     def __getattribute__(self, attr: Text):
         # First load from Django settings.
