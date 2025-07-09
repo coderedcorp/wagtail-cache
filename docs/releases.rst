@@ -3,6 +3,16 @@ Release Notes
 =============
 
 
+3.0.0
+=====
+
+* Support Wagtail 6.4 and 7.0
+
+* Performance improvement: ignore tracking cookies even on requests containing CSRF tokens or Django sessions. This will significantly improve cachablility of the site for users who have visited a form, for example.
+
+* Performance improvement: disable the keyring used to track a list of all pages in the cache. When the keyring grows too large, it will create a large amount of network traffic or I/O to and from the cache on each cache write. To restore previous functionality and enable the keyring, set ``WAGTAIL_CACHE_KEYRING = True`` in the Django settings.
+
+
 2.5.1
 =====
 
