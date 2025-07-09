@@ -34,7 +34,8 @@ correctly cache everything:
 
 Do not use the Wagtail Cache middleware with the Django cache middleware. If you
 are currently using the Django cache middleware, you should remove it before
-adding the Wagtail Cache middleware.
+adding the Wagtail Cache middleware. Note: Adding 'FetchFromCacheMiddleware' blocks 
+django-browser-reload (if installed) from watching your project.
 
 
 2. Define a cache
