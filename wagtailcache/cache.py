@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Callable
 from urllib.parse import unquote
 
 from django.conf import settings
