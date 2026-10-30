@@ -2,13 +2,13 @@
 Functionality to set, serve from, and clear the cache.
 """
 
+from __future__ import annotations
+
 import logging
 import re
 from enum import Enum
 from functools import wraps
 from typing import Callable
-from typing import List
-from typing import Optional
 from urllib.parse import unquote
 
 from django.conf import settings
@@ -193,7 +193,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         self._wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
         super().__init__(get_response)
 
-    def process_request(self, request: WSGIRequest) -> Optional[HttpResponse]:
+    def process_request(self, request: WSGIRequest) -> HttpResponse | None:
         if not wagtailcache_settings.WAGTAIL_CACHE:
             return None
 
@@ -216,8 +216,8 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
                 is_cacheable = result
 
         if not is_cacheable:
-            setattr(request, "_wagtailcache_update", False)
-            setattr(request, "_wagtailcache_skip", True)
+            request._wagtailcache_update = False
+            request._wagtailcache_skip = True
             return None  # Don't bother checking the cache.
 
         # Try and get the cached response.
@@ -226,7 +226,7 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
 
             # No cache information available, need to rebuild.
             if cache_key is None:
-                setattr(request, "_wagtailcache_update", True)
+                request._wagtailcache_update = True
                 return None
 
             # We have a key, get the cached response.
@@ -235,17 +235,17 @@ class FetchFromCacheMiddleware(MiddlewareMixin):
         except Exception:
             # If the cache backend is currently unresponsive or errors out,
             # return None and log the error.
-            setattr(request, "_wagtailcache_error", True)
+            request._wagtailcache_error = True
             logger.exception("Could not fetch page from cache backend.")
             return None
 
         # No cache information available, need to rebuild.
         if response is None:
-            setattr(request, "_wagtailcache_update", True)
+            request._wagtailcache_update = True
             return None
 
         # Hit. Return cached response.
-        setattr(request, "_wagtailcache_update", False)
+        request._wagtailcache_update = False
         return response
 
 
@@ -348,7 +348,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
                     keyring = self._wagcache.get("keyring", {})
                     # Get current cache keys belonging to this URI.
                     # This should be a list of keys.
-                    uri_keys: List[str] = keyring.get(uri, [])
+                    uri_keys: list[str] = keyring.get(uri, [])
                     # Append the key to this list if not already present and save.
                     if cache_key not in uri_keys:
                         uri_keys.append(cache_key)
@@ -372,7 +372,7 @@ class UpdateCacheMiddleware(MiddlewareMixin):
         return response
 
 
-def clear_cache(urls: List[str] = []) -> None:
+def clear_cache(urls: list[str] | None = None) -> None:
     """
     Clears the Wagtail cache backend.
 
@@ -381,6 +381,8 @@ def clear_cache(urls: List[str] = []) -> None:
     deleted from the cache. If ``urls`` is ``None`` the entire cache is cleared.
     """
 
+    if urls is None:
+        urls = []
     if not wagtailcache_settings.WAGTAIL_CACHE:
         return
 

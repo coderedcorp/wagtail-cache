@@ -33,9 +33,8 @@ Next, run the formatters and static analysis tools:
 
 .. code-block:: console
 
-    $ isort .
-    $ black .
-    $ flake8 ./wagtailcache/
+    $ ruff check --fix .
+    $ ruff format .
     $ mypy ./wagtailcache/
 
 Next, run the units tests. A simple Wagtail project using Wagtail Cache is in

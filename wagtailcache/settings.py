@@ -2,8 +2,6 @@
 Default django settings for wagtail-cache.
 """
 
-from typing import Text
-
 from django.conf import settings
 
 
@@ -12,7 +10,7 @@ class _DefaultSettings:
     WAGTAIL_CACHE_BACKEND = "default"
     WAGTAIL_CACHE_HEADER = "X-Wagtail-Cache"
     WAGTAIL_CACHE_IGNORE_COOKIES = True
-    WAGTAIL_CACHE_IGNORE_QS = [
+    WAGTAIL_CACHE_IGNORE_QS = [  # noqa: RUF012
         r"^_bta_.*$",  # Bronto
         r"^_ga$",  # Google Analytics
         r"^_gl$",  # Google Analytics
@@ -36,7 +34,7 @@ class _DefaultSettings:
     ]
     WAGTAIL_CACHE_KEYRING = False
 
-    def __getattribute__(self, attr: Text):
+    def __getattribute__(self, attr: str):
         # First load from Django settings.
         # If it does not exist, load from _DefaultSettings.
         try:
