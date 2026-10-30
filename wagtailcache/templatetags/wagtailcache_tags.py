@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from django import template
 from django.core.cache import caches
@@ -15,7 +15,7 @@ def seconds_to_readable(seconds: int) -> str:
     Converts int seconds to a human readable string.
     """
     if seconds <= 0:
-        return "{0} {1}".format(str(seconds), _("seconds"))
+        return "{} {}".format(str(seconds), _("seconds"))
 
     mins, secs = divmod(seconds, 60)
     hrs, mins = divmod(mins, 60)
@@ -23,22 +23,22 @@ def seconds_to_readable(seconds: int) -> str:
     pretty_time = ""
     if days > 0:
         label = _("days") if days > 1 else _("day")
-        pretty_time += " {0} {1}".format(str(days), label)
+        pretty_time += f" {days!s} {label}"
     if hrs > 0:
         label = _("hours") if hrs > 1 else _("hour")
-        pretty_time += " {0} {1}".format(str(hrs), label)
+        pretty_time += f" {hrs!s} {label}"
     if mins > 0:
         label = _("minutes") if mins > 1 else _("minute")
-        pretty_time += " {0} {1}".format(str(mins), label)
+        pretty_time += f" {mins!s} {label}"
     if secs > 0:
         label = _("seconds") if secs > 1 else _("second")
-        pretty_time += " {0} {1}".format(str(secs), label)
+        pretty_time += f" {secs!s} {label}"
 
     return pretty_time
 
 
 @register.filter
-def get_wagtailcache_setting(value: str) -> Optional[object]:
+def get_wagtailcache_setting(value: str) -> object | None:
     """
     Returns a wagtailcache Django setting, or default.
     """

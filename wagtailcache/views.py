@@ -2,8 +2,7 @@
 Views for the wagtail admin dashboard.
 """
 
-from typing import Dict
-from typing import List
+from __future__ import annotations
 
 from django.core.cache import caches
 from django.http import HttpResponseRedirect
@@ -20,7 +19,7 @@ def index(request):
     """
     # Get the keyring to show cache contents.
     _wagcache = caches[wagtailcache_settings.WAGTAIL_CACHE_BACKEND]
-    keyring: Dict[str, List[str]] = _wagcache.get("keyring", {})
+    keyring: dict[str, list[str]] = _wagcache.get("keyring", {})
     return render(
         request,
         "wagtailcache/index.html",

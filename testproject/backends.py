@@ -8,10 +8,10 @@ class ErroneousGetCache(LocMemCache):
     """
 
     def get(self, key, default=None, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
     def has_key(self, key, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
 
 class ErroneousSetCache(LocMemCache):
@@ -20,16 +20,16 @@ class ErroneousSetCache(LocMemCache):
     """
 
     def add(self, key, value, timeout=DEFAULT_TIMEOUT, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
     def delete(self, key, version=None):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
 
     def clear(self):
-        raise Exception("Error in cache backend.")
+        raise Exception("Error in cache backend.")  # noqa: TRY002
