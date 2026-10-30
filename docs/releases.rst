@@ -3,6 +3,14 @@ Release Notes
 =============
 
 
+3.1.0
+=====
+
+* Support Wagtail 8.0 and Django 6.1
+
+* Switch from importing ``typing`` to ``from __future__ import annotations``
+
+
 3.0.0
 =====
 

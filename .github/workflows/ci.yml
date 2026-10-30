@@ -21,16 +21,22 @@ jobs:
         include:
           - name: py3.11_wag5
             python-version: '3.11'
-            wagtail: '5.*'
+            wagtail: '3.*'
+          - name: py3.11_wag5
+            python-version: '3.11'
+            wagtail: '4.1.*'
+          - name: py3.11_wag5
+            python-version: '3.11'
+            wagtail: '5.2.*'
           - name: py3.12_wag6
             python-version: '3.12'
-            wagtail: '6.*'
+            wagtail: '6.3.*'
           - name: py3.13_wag7
             python-version: '3.13'
-            wagtail: '7.*'
+            wagtail: '7.0.*'
           - name: py3.14_wag8
             python-version: '3.14'
-            wagtail: '8.*'
+            wagtail: '7.4.*'
           - name: py3.15_wag8
             python-version: '3.15'
             wagtail: '8.*'
