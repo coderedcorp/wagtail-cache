@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable
+from collections.abc import Iterator
 from enum import Enum
 from functools import wraps
 from urllib.parse import unquote
