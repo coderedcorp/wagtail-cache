@@ -2,8 +2,6 @@
 Views for the wagtail admin dashboard.
 """
 
-from __future__ import annotations
-
 from django.core.cache import caches
 from django.http import HttpResponseRedirect
 from django.shortcuts import render

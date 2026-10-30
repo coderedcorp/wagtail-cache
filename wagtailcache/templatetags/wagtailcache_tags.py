@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from django import template
 from django.core.cache import caches
 from django.utils.translation import gettext_lazy as _

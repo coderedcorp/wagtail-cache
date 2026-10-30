@@ -6,9 +6,11 @@ Release Notes
 3.1.0
 =====
 
-* Support Wagtail 8.0 and Django 6.1
+* Support Wagtail 8.0 and Django 6.1.
 
-* Switch from importing ``typing`` to ``from __future__ import annotations``
+* Minimum supported Python 3.11.
+
+* Swich to PEP 585 type annotations.
 
 
 3.0.0
