@@ -26,10 +26,10 @@ jobs:
           - name: py3.12_wag6
             python-version: '3.12'
             wagtail: '6.3.*'
-          - name: py3.13_wag7.0
+          - name: py3.13_wag7
             python-version: '3.13'
             wagtail: '7.*'
-          - name: py3.14_wag7.4
+          - name: py3.14_wag8
             python-version: '3.14'
             wagtail: '8.*'
           - name: py3.15_wag8
