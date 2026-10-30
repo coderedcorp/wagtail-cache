@@ -10,7 +10,7 @@ Release Notes
 
 * Minimum supported Python 3.11.
 
-* Swich to PEP 585 type annotations.
+* Switch to PEP 585 type annotations.
 
 
 3.0.0
