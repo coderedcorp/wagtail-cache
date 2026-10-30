@@ -395,10 +395,7 @@ class WagtailCacheTest(TestCase):
         self.assertEqual(r["Vary"], "A, B, C")
 
     def test_page_restricted(self):
-        auth_url = "/_util/authenticate_with_password/%d/%d/" % (
-            self.view_restriction.id,
-            self.page_cachedpage_restricted.id,
-        )
+        auth_url = f"/_util/authenticate_with_password/{self.view_restriction.id}/{self.page_cachedpage_restricted.id}/"
         response = self.client.post(
             auth_url,
             {
@@ -434,7 +431,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",  # noqa
+            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",
         }
     )
     def test_page_miss_without_auth(self):
@@ -442,7 +439,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",  # noqa
+            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",
         }
     )
     def test_page_hit_without_auth(self):
@@ -450,7 +447,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",  # noqa
+            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",
         }
     )
     def test_page_skip_without_auth(self):
@@ -458,7 +455,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",  # noqa
+            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",
         }
     )
     def test_page_restricted_without_auth(self):
@@ -466,7 +463,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",  # noqa
+            "remove": "django.contrib.auth.middleware.AuthenticationMiddleware",
         }
     )
     def test_page_404_without_auth(self):
@@ -477,7 +474,7 @@ class WagtailCacheTest(TestCase):
     # Views use the decorators and should work without the middleware.
     @modify_settings(
         MIDDLEWARE={
-            "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
+            "remove": "wagtailcache.cache.UpdateCacheMiddleware",
             "remove": "wagtailcache.cache.FetchFromCacheMiddleware",  # noqa
         }
     )
@@ -487,7 +484,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
+            "remove": "wagtailcache.cache.UpdateCacheMiddleware",
             "remove": "wagtailcache.cache.FetchFromCacheMiddleware",  # noqa
         }
     )
@@ -499,7 +496,7 @@ class WagtailCacheTest(TestCase):
 
     @modify_settings(
         MIDDLEWARE={
-            "remove": "wagtailcache.cache.UpdateCacheMiddleware",  # noqa
+            "remove": "wagtailcache.cache.UpdateCacheMiddleware",
             "remove": "wagtailcache.cache.FetchFromCacheMiddleware",  # noqa
         }
     )
@@ -546,7 +543,7 @@ class WagtailCacheTest(TestCase):
         self.get_miss(self.page_cachedpage.get_url())
         # Get first key from keyring
         key = next(iter(self.cache.get("keyring")))
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        url = "http://{}{}".format("testserver", self.page_cachedpage.get_url())
         # Compare Keys
         self.assertEqual(key, url)
 
@@ -565,7 +562,7 @@ class WagtailCacheTest(TestCase):
         # Fetch the first page again
         self.get_miss(self.page_cachedpage.get_url())
         # Check the keyring does not contain duplicate uri_keys
-        url = "http://%s%s" % ("testserver", self.page_cachedpage.get_url())
+        url = "http://{}{}".format("testserver", self.page_cachedpage.get_url())
         keyring = self.cache.get("keyring")
         self.assertEqual(len(keyring.get(url, [])), 1)
 

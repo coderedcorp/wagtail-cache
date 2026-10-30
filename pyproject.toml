@@ -25,13 +25,14 @@ classifiers = [
 ]
 dependencies = [
     "wagtail>=3.0,<8.0",
+    "django<6.1",
 ]
 description = "A simple page cache for Wagtail based on the Django cache middleware."
 dynamic = ["version"]
 license = {file = "LICENSE"}
 name = "wagtail-cache"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 
 [project.urls]
 Source = "https://github.com/coderedcorp/wagtail-cache"

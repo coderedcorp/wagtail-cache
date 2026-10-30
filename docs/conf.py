@@ -25,7 +25,7 @@ from wagtailcache import __shortversion__
 
 project = "wagtail-cache"
 author = "CodeRed LLC"
-copyright = f"2018–{str(datetime.datetime.now().year)}, {author}"
+copyright = f"2018–{datetime.datetime.now().year!s}, {author}"
 # The short X.Y version
 version = __shortversion__
 # The full version, including alpha/beta/rc tags
