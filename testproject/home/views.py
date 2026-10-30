@@ -21,6 +21,12 @@ def vary_view(request):
     return r
 
 
+def vary_whitespace_view(request):
+    r = HttpResponse("Variety is the spice of life.")
+    r.headers["Vary"] = " Cookie ,A,  B, C "
+    return r
+
+
 @cache_page
 def template_response_view(request):
     response = TemplateResponse(request, "home/page.html", {})

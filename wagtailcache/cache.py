@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import re
 from collections.abc import Callable
+from collections.abc import Iterator
 from enum import Enum
 from functools import wraps
 from urllib.parse import unquote
@@ -17,7 +18,6 @@ from django.core.cache.backends.base import BaseCache
 from django.core.handlers.wsgi import WSGIRequest
 from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse
-from django.utils.cache import cc_delim_re
 from django.utils.cache import get_cache_key
 from django.utils.cache import get_max_age
 from django.utils.cache import has_vary_header
@@ -27,6 +27,17 @@ from django.utils.deprecation import MiddlewareMixin
 from wagtail import hooks
 
 from wagtailcache.settings import wagtailcache_settings
+
+
+try:
+    # Django 6.1 replaced ``cc_delim_re`` with this helper (CVE-2026-48587).
+    from django.utils.http import split_header_value
+except ImportError:  # Django < 6.1
+
+    def split_header_value(value: str, sep: str = ",") -> Iterator[str]:
+        for part in value.split(sep):
+            if stripped := part.strip():
+                yield stripped
 
 
 logger = logging.getLogger("wagtail-cache")
@@ -72,7 +83,7 @@ def _delete_vary_cookie(response: HttpResponse) -> None:
     if not response.has_header("Vary"):
         return
     # Parse the value of Vary header.
-    vary_headers = cc_delim_re.split(response["Vary"])
+    vary_headers = split_header_value(response["Vary"])
     # Build a lowercase-keyed dict to preserve the original case.
     vhdict = {}
     for item in vary_headers:

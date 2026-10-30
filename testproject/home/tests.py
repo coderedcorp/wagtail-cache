@@ -394,6 +394,14 @@ class WagtailCacheTest(TestCase):
         # case and order of the other items.
         self.assertEqual(r["Vary"], "A, B, C")
 
+    @override_settings(WAGTAIL_CACHE_IGNORE_COOKIES=True)
+    def test_vary_header_parse_whitespace(self):
+        self.get_miss(reverse("vary_whitespace_view"))
+        r = self.get_hit(reverse("vary_whitespace_view"))
+        # Whitespace around every token is stripped, including the first and
+        # last, so a padded ``Cookie`` is still recognized and removed.
+        self.assertEqual(r["Vary"], "A, B, C")
+
     def test_page_restricted(self):
         auth_url = f"/_util/authenticate_with_password/{self.view_restriction.id}/{self.page_cachedpage_restricted.id}/"
         response = self.client.post(

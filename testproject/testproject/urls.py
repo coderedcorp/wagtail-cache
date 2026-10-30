@@ -16,6 +16,11 @@ urlpatterns = [
     path("views/nocache/", views.nocached_view, name="nocached_view"),
     path("views/vary/", views.vary_view, name="vary_view"),
     path(
+        "views/vary-whitespace/",
+        views.vary_whitespace_view,
+        name="vary_whitespace_view",
+    ),
+    path(
         "views/template-response-view/",
         views.template_response_view,
         name="template_response_view",
