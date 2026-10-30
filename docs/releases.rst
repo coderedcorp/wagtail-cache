@@ -3,6 +3,16 @@ Release Notes
 =============
 
 
+3.1.0
+=====
+
+* Support Wagtail 8.0 and Django 6.1.
+
+* Minimum supported Python 3.11.
+
+* Switch to PEP 585 type annotations.
+
+
 3.0.0
 =====
 
