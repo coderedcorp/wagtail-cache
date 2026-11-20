@@ -15,9 +15,9 @@ jobs:
         include:
           - python: "3.11"
             wagtail: "3.*"
-            python: "3.11"
-          - wagtail: "4.1.*"
-            python: "3.11"
+          - python: "3.11"
+            wagtail: "4.1.*"
+          - python: "3.11"
             wagtail: "5.2.*"
           - python: "3.12"
             wagtail: "6.3.*"
