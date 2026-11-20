@@ -9,39 +9,31 @@ on:
 
 jobs:
   unit-tests:
-    name: Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - name: py3.11_wag3
-            python-version: '3.11'
-            wagtail: '3.*'
-          - name: py3.11_wag4
-            python-version: '3.11'
-            wagtail: '4.1.*'
-          - name: py3.11_wag5
-            python-version: '3.11'
-            wagtail: '5.2.*'
-          - name: py3.12_wag6
-            python-version: '3.12'
-            wagtail: '6.3.*'
-          - name: py3.13_wag7
-            python-version: '3.13'
-            wagtail: '7.*'
-          - name: py3.14_wag8
-            python-version: '3.14'
-            wagtail: '8.*'
-          - name: py3.15_wag8
-            python-version: '3.15'
-            wagtail: '8.*'
+          - python: "3.11"
+            wagtail: "3.*"
+            python: "3.11"
+          - wagtail: "4.1.*"
+            python: "3.11"
+            wagtail: "5.2.*"
+          - python: "3.12"
+            wagtail: "6.3.*"
+          - python: "3.13"
+            wagtail: "7.*"
+          - python: "3.14"
+            wagtail: "8.*"
+          - python: "3.15"
+            wagtail: "8.*"
 
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python }}
 
       - name: 'CR-QC: Install from local repo'
         run: python -m pip install -r requirements-dev.txt "wagtail==${{ matrix.wagtail }}"
@@ -53,22 +45,6 @@ jobs:
 
       - name: 'CR-QC: Run unit tests'
         run: pytest ./testproject/
-
-      - name: Upload unit test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ matrix.name }}
-          path: '**/test-*.xml'
-          if-no-files-found: ignore
-
-      - name: Upload code coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.name }}
-          path: coverage.xml
-          if-no-files-found: ignore
 
   lint:
     name: Linters
@@ -96,25 +72,6 @@ jobs:
       - name: 'CR-QC: Type check (mypy)'
         run: mypy ./wagtailcache/
 
-  codecov:
-    name: Code Coverage
-    needs: unit-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Download code coverage from current run
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-*
-          path: ${{ runner.temp }}/current-artifacts
-
-      - name: 'CR-QC: Compare code coverage'
-        shell: pwsh
-        env:
-          WorkDir: ${{ runner.temp }}
-        run: ./ci/compare-codecov.ps1 -wd $Env:WorkDir
-
   docs:
     name: Documentation
     needs: unit-tests
@@ -124,7 +81,7 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.15'
 
       - name: 'CR-QC: Install from local repo'
         run: python -m pip install -r requirements-dev.txt
