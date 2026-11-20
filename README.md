@@ -13,7 +13,10 @@ middleware.
 Status
 ------
 
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Django Version](https://img.shields.io/pypi/djversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/)
+![PyPI - Wagtail Versions](https://img.shields.io/pypi/frameworkversions/wagtail/wagtail-cache)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/)
+[![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/)
 
 
 Quick Start
