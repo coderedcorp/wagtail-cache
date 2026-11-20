@@ -9,6 +9,7 @@ on:
 
 jobs:
   unit-tests:
+    name: Test py${{ matrix.python }} wag${{ matrix.wagtail }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
