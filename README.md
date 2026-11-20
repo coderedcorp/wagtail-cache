@@ -5,17 +5,15 @@ A fast and simple page cache for Wagtail, inspired by the Django cache
 middleware.
 
 [Documentation](https://docs.coderedcorp.com/wagtail-cache/) |
-[Source code on GitHub](https://github.com/coderedcorp/wagtail-cache) |
-[PyPI](https://pypi.org/project/wagtail-cache/)
+[GitHub](https://github.com/coderedcorp/wagtail-cache) |
+[PyPI](https://pypi.org/project/wagtail-cache/) |
+[Release notes](https://docs.coderedcorp.com/wagtail-cache/releases.html)
 
 
 Status
 ------
 
-|                        |                      |
-|------------------------|----------------------|
-| Python Package         | [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Wheel](https://img.shields.io/pypi/wheel/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/) |
-| Build                  | [![Build Status](https://dev.azure.com/coderedcorp/cr-github/_apis/build/status/wagtail-cache?branchName=main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) [![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/coderedcorp/cr-github/9/main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) [![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/coderedcorp/cr-github/9/main)](https://dev.azure.com/coderedcorp/cr-github/_build/latest?definitionId=9&branchName=main) |
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Django Version](https://img.shields.io/pypi/djversions/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI - Downloads](https://img.shields.io/pypi/dm/wagtail-cache)](https://pypi.org/project/wagtail-cache/) [![PyPI](https://img.shields.io/pypi/v/wagtail-cache)](https://pypi.org/project/wagtail-cache/)
 
 
 Quick Start

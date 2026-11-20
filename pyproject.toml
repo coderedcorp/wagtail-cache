@@ -35,6 +35,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 
 [project.urls]
+Changelog = "https://docs.coderedcorp.com/wagtail-cache/releases.html"
+Documentation = "https://docs.coderedcorp.com/wagtail-cache/"
 Source = "https://github.com/coderedcorp/wagtail-cache"
 
 [tool.setuptools]
